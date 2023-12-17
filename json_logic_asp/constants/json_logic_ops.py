@@ -1,0 +1,4 @@
+BOOLEAN_NOT = "!"
+BOOLEAN_NOT_NOT = "!!"
+BOOLEAN_AND = "and"
+BOOLEAN_OR = "or"
