@@ -7,4 +7,4 @@ def simplify_json_logic(rule: Dict):
     if not isinstance(rule, dict):
         raise ValueError("Expected a dictionary to be simplified")
 
-    simplify_node()
+    return simplify_node(rule)

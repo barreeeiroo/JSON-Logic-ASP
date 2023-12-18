@@ -10,7 +10,7 @@ lint: format
 	poetry run ruff check json_logic_asp/ tests/
 
 test:
-	poetry run pytest -v json_logic_asp/
+	poetry run pytest -v
 
 pr: lint mypy test security-baseline complexity-baseline
 
