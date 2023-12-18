@@ -1,20 +1,13 @@
-from abc import ABC, abstractmethod
 from typing import List
 
-from json_logic_asp.translator.models.asp_nodes import PredicateAtom, Literal
-
-
-class Statement(ABC):
-    @abstractmethod
-    def to_asp(self):
-        raise NotImplementedError()
+from json_logic_asp.translator.adapters.asp.asp_nodes import Literal, PredicateAtom
+from json_logic_asp.translator.models.asp_base import Statement
 
 
 class FactStatement(Statement):
     def __init__(self, atom: PredicateAtom):
         self.atom = atom
 
-    @abstractmethod
     def to_asp(self):
         return f"{self.atom.to_asp()}."
 
@@ -25,7 +18,7 @@ class RuleStatement(Statement):
         self.literals = literals
 
     def to_asp(self):
-        return f"{self.atom} :- {', '.join([literal.to_asp() for literal in self.literals])}."
+        return f"{self.atom.to_asp()} :- {', '.join([literal.to_asp() for literal in self.literals])}."
 
 
 class DirectiveStatement(Statement):

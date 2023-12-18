@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Callable, Dict
 
-import json_logic_asp.constants.json_logic_ops as JL_OPS
+from json_logic_asp.constants.json_logic_ops import JsonLogicOps
 from json_logic_asp.constants.loggers import SIMPLIFIER_LOGGER_NAME
 from json_logic_asp.utils.json_logic_helpers import extract_key_and_value_from_node
 
@@ -28,14 +28,14 @@ def simplify_and_or_nodes(node_key: str, node_values: Any):
                 simplified_node_values.extend(child_value)
                 continue
 
-        if node_key == JL_OPS.BOOLEAN_AND:
+        if node_key == JsonLogicOps.BOOLEAN_AND:
             if simplified_node_value is False:
                 # If value is False then the AND condition can never be satisfied
                 return False
             elif simplified_node_value is True:
                 # Or if value is True, then skip it as it's redundant
                 continue
-        elif node_key == JL_OPS.BOOLEAN_OR:
+        elif node_key == JsonLogicOps.BOOLEAN_OR:
             if simplified_node_value is False:
                 # If value is False, skip it as it doesn't change the evaluation
                 continue
@@ -58,7 +58,7 @@ def simplify_and_or_nodes(node_key: str, node_values: Any):
 
 
 def simplify_negation_nodes(node_key: str, node_values: Any):
-    double_negation = node_key == JL_OPS.BOOLEAN_NOT_NOT
+    double_negation = node_key == JsonLogicOps.BOOLEAN_NOT_NOT
 
     if isinstance(node_values, list):
         if len(node_values) == 0:
@@ -95,10 +95,10 @@ def simplify_negation_nodes(node_key: str, node_values: Any):
 
 
 SIMPLIFIABLE_OPERATIONS: Dict[str, Callable] = {
-    JL_OPS.BOOLEAN_AND: simplify_and_or_nodes,
-    JL_OPS.BOOLEAN_OR: simplify_and_or_nodes,
-    JL_OPS.BOOLEAN_NOT: simplify_negation_nodes,
-    JL_OPS.BOOLEAN_NOT_NOT: simplify_negation_nodes,
+    JsonLogicOps.BOOLEAN_AND: simplify_and_or_nodes,
+    JsonLogicOps.BOOLEAN_OR: simplify_and_or_nodes,
+    JsonLogicOps.BOOLEAN_NOT: simplify_negation_nodes,
+    JsonLogicOps.BOOLEAN_NOT_NOT: simplify_negation_nodes,
 }
 
 
