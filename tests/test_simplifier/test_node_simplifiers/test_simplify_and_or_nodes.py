@@ -12,32 +12,41 @@ def test_simplify_and_or_nodes_single_node():
 
 
 def test_simplify_and_or_nodes_multiple_nodes():
-    result = simplify_and_or_nodes("and",
-                                   [{"==": [{"var": "a"}, "b"]}, {"==": [{"var": "c"}, "d"]}])
+    result = simplify_and_or_nodes("and", [{"==": [{"var": "a"}, "b"]}, {"==": [{"var": "c"}, "d"]}])
     assert result == {"and": [{"==": [{"var": "a"}, "b"]}, {"==": [{"var": "c"}, "d"]}]}
 
 
 def test_simplify_and_or_nodes_same_nested():
-    result = simplify_and_or_nodes("and",
-                                   [
-                                       {"and": [
-                                           {"==": [{"var": "a"}, "b"]},
-                                           {"==": [{"var": "c"}, "d"]},
-                                       ]},
-                                       {"or": [
-                                           {"==": [{"var": "e"}, "f"]},
-                                           {"==": [{"var": "g"}, "h"]},
-                                       ]}
-                                   ])
+    result = simplify_and_or_nodes(
+        "and",
+        [
+            {
+                "and": [
+                    {"==": [{"var": "a"}, "b"]},
+                    {"==": [{"var": "c"}, "d"]},
+                ]
+            },
+            {
+                "or": [
+                    {"==": [{"var": "e"}, "f"]},
+                    {"==": [{"var": "g"}, "h"]},
+                ]
+            },
+        ],
+    )
 
-    assert result == {"and": [
-        {"==": [{"var": "a"}, "b"]},
-        {"==": [{"var": "c"}, "d"]},
-        {"or": [
-            {"==": [{"var": "e"}, "f"]},
-            {"==": [{"var": "g"}, "h"]},
-        ]}
-    ]}
+    assert result == {
+        "and": [
+            {"==": [{"var": "a"}, "b"]},
+            {"==": [{"var": "c"}, "d"]},
+            {
+                "or": [
+                    {"==": [{"var": "e"}, "f"]},
+                    {"==": [{"var": "g"}, "h"]},
+                ]
+            },
+        ]
+    }
 
 
 def test_simplify_and_nodes_no_value():

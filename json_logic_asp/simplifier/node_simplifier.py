@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Callable, Any
+from typing import Any, Callable, Dict
 
 import json_logic_asp.constants.json_logic_ops as JL_OPS
 from json_logic_asp.constants.loggers import SIMPLIFIER_LOGGER_NAME
@@ -12,7 +12,7 @@ def simplify_and_or_nodes(node_key: str, node_values: Any):
     simplified_node_values = []
 
     if not isinstance(node_values, list):
-        logger.debug(f'Found non-array value at {node_key}, converting to list...')
+        logger.debug(f"Found non-array value at {node_key}, converting to list...")
         node_values = [node_values]
 
     for node_value in node_values:
@@ -47,11 +47,11 @@ def simplify_and_or_nodes(node_key: str, node_values: Any):
             simplified_node_values.append(simplified_node_value)
 
     if len(simplified_node_values) == 0:
-        logger.debug(f'Node {node_key} is empty, does never evaluate to True...')
+        logger.debug(f"Node {node_key} is empty, does never evaluate to True...")
         return False
 
     if len(simplified_node_values) == 1:
-        logger.debug(f'Node {node_key} has one node, should be removed...')
+        logger.debug(f"Node {node_key} has one node, should be removed...")
         return simplified_node_values[0]
 
     return {node_key: simplified_node_values}
@@ -62,11 +62,11 @@ def simplify_negation_nodes(node_key: str, node_values: Any):
 
     if isinstance(node_values, list):
         if len(node_values) == 0:
-            logger.debug(f'Found empty {node_key}, evaluating...')
+            logger.debug(f"Found empty {node_key}, evaluating...")
             # JL evaluates to False on empty arrays, so return True when not double negation
             return True if not double_negation else False
 
-        logger.debug(f'Found array value at {node_key}, exploding...')
+        logger.debug(f"Found array value at {node_key}, exploding...")
         node_value = node_values[0]
     else:
         node_value = node_values
@@ -75,11 +75,8 @@ def simplify_negation_nodes(node_key: str, node_values: Any):
         single_neg_evaluation = not bool(value)
         return_eval = single_neg_evaluation if not double_negation else not single_neg_evaluation
 
-        if (isinstance(value, int)
-                or isinstance(value, float)
-                or isinstance(value, str)
-                or isinstance(value, bool)):
-            logger.debug(f'Evaluating {node_key} as primitive, resolving...')
+        if isinstance(value, int) or isinstance(value, float) or isinstance(value, str) or isinstance(value, bool):
+            logger.debug(f"Evaluating {node_key} as primitive, resolving...")
             return return_eval
 
         return None
@@ -109,7 +106,7 @@ def simplify_node(node: Dict):
     node_key, node_value = extract_key_and_value_from_node(node)
 
     if node_key not in SIMPLIFIABLE_OPERATIONS:
-        logger.debug(f'Node {node_key} cannot be simplified, skipping...')
+        logger.debug(f"Node {node_key} cannot be simplified, skipping...")
         return node
 
     return SIMPLIFIABLE_OPERATIONS[node_key](node_key=node_key, node_values=node_value)
