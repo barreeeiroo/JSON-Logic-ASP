@@ -37,7 +37,7 @@ class JsonLogicOps(str, Enum):
     ARRAY_MERGE = "merge"
     ARRAY_IN = "in"
 
-    STRING_IN = "in"
+    # STRING_IN = "in"
     STRING_CAT = "cat"
     STRING_SUBSTR = "substr"
 

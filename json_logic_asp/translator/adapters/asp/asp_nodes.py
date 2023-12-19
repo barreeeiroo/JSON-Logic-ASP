@@ -1,9 +1,14 @@
-from typing import List, TypeVar, Union
+from abc import ABC
+from typing import List, Union
 
 from json_logic_asp.translator.models.asp_base import Atom
 
 
-class PredicateAtom(Atom):
+class Literal(Atom, ABC):
+    pass
+
+
+class PredicateAtom(Literal):
     def __init__(self, predicate_name: str, terms: List[str], negated: bool = False):
         self.predicate_name = predicate_name
         self.terms = terms
@@ -21,7 +26,16 @@ class PredicateAtom(Atom):
         return f"{negated}{self.predicate_name}{asp_terms}"
 
 
-class LiteralAtom(Atom):
+class VariableAtom(Literal):
+    def __init__(self, variable_name: str, value: Union[int, float, str, bool]):
+        self.variable_name = variable_name
+        self.value = value
+
+    def to_asp(self):
+        return f"{self.variable_name} = {self.value}"
+
+
+class ComparatorAtom(Literal):
     def __init__(self, variable_name: str, comparator: str, target: Union[int, float, str, bool]):
         self.variable_name = variable_name
         self.comparator = comparator
@@ -29,6 +43,3 @@ class LiteralAtom(Atom):
 
     def to_asp(self):
         return f"{self.variable_name} {self.comparator} {self.target}"
-
-
-Literal = TypeVar("Literal", bound=Union[PredicateAtom, LiteralAtom])

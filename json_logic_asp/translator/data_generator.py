@@ -3,7 +3,7 @@ from typing import Dict
 from json_logic_asp.translator.adapters.asp.asp_nodes import PredicateAtom
 from json_logic_asp.translator.adapters.asp.asp_statements import FactStatement
 from json_logic_asp.translator.models.jl_base import JsonLogicNode
-from json_logic_asp.translator.models.multi_translate import DataInput
+from json_logic_asp.translator.models.translator import DataInput
 from json_logic_asp.utils.list_utils import remove_duplicates
 
 DATA_NODE_CACHE: Dict[str, JsonLogicNode] = {}

@@ -2,14 +2,14 @@ from typing import Dict, List
 
 from json_logic_asp.translator.adapters.asp.asp_nodes import PredicateAtom
 from json_logic_asp.translator.adapters.asp.asp_statements import RuleStatement
-from json_logic_asp.translator.models.jl_base import JsonLogicRuleNode
+from json_logic_asp.translator.models.jl_base import JsonLogicDefinitionNode, JsonLogicRuleNode
 from json_logic_asp.utils.id_management import generate_unique_id
 
 
 class BooleanAndNode(JsonLogicRuleNode):
-    def __init__(self, child_nodes: List[JsonLogicRuleNode]):
+    def __init__(self, child_nodes: List[JsonLogicDefinitionNode]):
         # Remove duplicates
-        self.child_nodes: List[JsonLogicRuleNode] = list(set(child_nodes))
+        self.child_nodes: List[JsonLogicDefinitionNode] = list(set(child_nodes))
 
         node_id = generate_unique_id()
 
@@ -42,9 +42,9 @@ class BooleanAndNode(JsonLogicRuleNode):
 
 
 class BooleanOrNode(JsonLogicRuleNode):
-    def __init__(self, child_nodes: List[JsonLogicRuleNode]):
+    def __init__(self, child_nodes: List[JsonLogicDefinitionNode]):
         # Remove duplicates
-        self.child_nodes: List[JsonLogicRuleNode] = list(set(child_nodes))
+        self.child_nodes: List[JsonLogicDefinitionNode] = list(set(child_nodes))
 
         node_id = generate_unique_id()
 
@@ -83,9 +83,9 @@ class BooleanOrNode(JsonLogicRuleNode):
 
 
 class BooleanNotNode(JsonLogicRuleNode):
-    def __init__(self, child_nodes: List[JsonLogicRuleNode]):
+    def __init__(self, child_nodes: List[JsonLogicDefinitionNode]):
         # Remove duplicates
-        self.child_nodes: List[JsonLogicRuleNode] = list(set(child_nodes))
+        self.child_nodes: List[JsonLogicDefinitionNode] = list(set(child_nodes))
 
         node_id = generate_unique_id()
 

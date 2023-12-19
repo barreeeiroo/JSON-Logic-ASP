@@ -1,0 +1,7 @@
+var('a', 'abc').
+
+in(ojmfhzzn4g53fqsloizdg8c8) :- var('a', V), V = ('abc';'def').
+and(rvpyc7qb7axo7o8aibl9xkap) :- in(ojmfhzzn4g53fqsloizdg8c8).
+rule('rule1') :- and(rvpyc7qb7axo7o8aibl9xkap).
+
+#show rule/1.

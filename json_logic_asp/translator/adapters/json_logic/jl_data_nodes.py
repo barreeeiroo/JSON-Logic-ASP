@@ -11,7 +11,7 @@ class DataVarNode(JsonLogicFactNode):
             atom=PredicateAtom(predicate_name="var", terms=[f"'{self.var_name}'", "V"]),
         )
 
-        super().__init__(asp_statements=[self.statement])
+        super().__init__(node_id=self.var_name, asp_statements=[self.statement])
 
     def to_asp(self):
         return [self.statement.to_asp()]

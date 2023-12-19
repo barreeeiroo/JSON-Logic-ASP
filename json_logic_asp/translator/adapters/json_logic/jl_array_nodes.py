@@ -1,26 +1,20 @@
 from typing import List, Union
 
-from json_logic_asp.translator.adapters.asp.asp_nodes import ComparatorAtom, Literal, PredicateAtom
+from json_logic_asp.translator.adapters.asp.asp_nodes import Literal, PredicateAtom, VariableAtom
 from json_logic_asp.translator.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.translator.models.jl_base import JsonLogicDefinitionNode, JsonLogicFactNode, JsonLogicRuleNode
 from json_logic_asp.utils.id_management import generate_unique_id
 
 
-class LogicEvalNode(JsonLogicRuleNode):
+class ArrayInNode(JsonLogicRuleNode):
     def __init__(
         self,
-        comparator: str,
-        predicate: str,
-        # TODO: Change to *args
         left_statement: JsonLogicDefinitionNode,
-        right_statement: Union[JsonLogicDefinitionNode, int, float, str, bool],
+        right_statement: Union[JsonLogicDefinitionNode, List[Union[int, float, str]]],
     ):
-        self.comparator = comparator
-        self.predicate = predicate
-
         node_id = generate_unique_id()
 
-        self.__node_statements: List[Union[JsonLogicDefinitionNode, int, float, str, bool]] = [
+        self.__node_statements: List[Union[JsonLogicDefinitionNode, List[Union[int, float, str]]]] = [
             left_statement,
             right_statement,
         ]
@@ -34,19 +28,16 @@ class LogicEvalNode(JsonLogicRuleNode):
         if isinstance(right_statement, JsonLogicDefinitionNode):
             literals.extend([stmt.atom for stmt in right_statement.asp_statements])
         else:
-            right_val = right_statement
-            if isinstance(right_val, str):
-                right_val = f"'{right_val}'"
+            right_val = [f"'{val}'" if isinstance(val, str) else str(val) for val in right_statement]
             literals.append(
-                ComparatorAtom(
+                VariableAtom(
                     variable_name="V",
-                    comparator=comparator,
-                    target=right_val,
+                    value=f"({';'.join(right_val)})",
                 )
             )
 
         self.statement = RuleStatement(
-            atom=PredicateAtom(predicate_name=self.predicate, terms=[node_id]),
+            atom=PredicateAtom(predicate_name="in", terms=[node_id]),
             literals=literals,
         )
 
@@ -62,7 +53,17 @@ class LogicEvalNode(JsonLogicRuleNode):
         return stmts
 
     def __str__(self):
-        return f"{self.predicate.upper()}({self.id})"
+        return f"IN({self.id})"
 
     def __hash__(self):
-        return hash((self.predicate, *sorted(hash(child) for child in self.__node_statements)))
+        return hash(
+            (
+                "in",
+                *sorted(
+                    hash(child)
+                    if not isinstance(child, list)
+                    else hash(tuple(sorted(hash(child2) for child2 in child)))
+                    for child in self.__node_statements
+                ),
+            )
+        )

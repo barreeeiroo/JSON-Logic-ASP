@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Generic, List, TypeVar
 
-from json_logic_asp.translator.adapters.asp.asp_statements import FactStatement, RuleStatement, Statement
+from json_logic_asp.translator.adapters.asp.asp_statements import FactStatement, RuleStatement
+
+TStatement = TypeVar("TStatement")
 
 
-class JsonLogicNode(ABC):
-    def __init__(self, asp_statements: List[Statement]):
+class JsonLogicNode(ABC, Generic[TStatement]):
+    def __init__(self, asp_statements: List[TStatement]):
         self.asp_statements = asp_statements
 
     @abstractmethod
@@ -19,14 +21,17 @@ class JsonLogicNode(ABC):
         raise NotImplementedError()
 
 
-class JsonLogicFactNode(JsonLogicNode, ABC):
-    def __init__(self, asp_statements: List[FactStatement]):
-        super().__init__(asp_statements)
-        self.asp_statements: List[FactStatement] = asp_statements
-
-
-class JsonLogicRuleNode(JsonLogicNode, ABC):
-    def __init__(self, node_id: str, asp_statements: List[RuleStatement]):
+class JsonLogicDefinitionNode(JsonLogicNode[TStatement], ABC, Generic[TStatement]):
+    def __init__(self, node_id: str, asp_statements: List[TStatement]):
         super().__init__(asp_statements)
         self.id = node_id
-        self.asp_statements: List[RuleStatement] = asp_statements
+
+
+class JsonLogicFactNode(JsonLogicDefinitionNode[FactStatement], ABC):
+    def __init__(self, node_id: str, asp_statements: List[FactStatement]):
+        super().__init__(node_id, asp_statements)
+
+
+class JsonLogicRuleNode(JsonLogicDefinitionNode[RuleStatement], ABC):
+    def __init__(self, node_id: str, asp_statements: List[RuleStatement]):
+        super().__init__(node_id, asp_statements)
