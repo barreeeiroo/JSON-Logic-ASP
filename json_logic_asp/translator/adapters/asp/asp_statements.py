@@ -5,7 +5,8 @@ from json_logic_asp.translator.models.asp_base import Statement
 
 
 class FactStatement(Statement):
-    def __init__(self, atom: PredicateAtom):
+    def __init__(self, atom: PredicateAtom, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.atom = atom
 
     def to_asp(self):
@@ -13,7 +14,8 @@ class FactStatement(Statement):
 
 
 class RuleStatement(Statement):
-    def __init__(self, atom: PredicateAtom, literals: List[Literal]):
+    def __init__(self, atom: PredicateAtom, literals: List[Literal], *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.atom = atom
         self.literals = literals
 
@@ -23,6 +25,7 @@ class RuleStatement(Statement):
 
 class DirectiveStatement(Statement):
     def __init__(self, action: str, statement: str):
+        super().__init__(comment=None)
         self.action = action
         self.statement = statement
 

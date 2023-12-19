@@ -2,8 +2,10 @@ from typing import List, Union
 
 from json_logic_asp.translator.adapters.asp.asp_nodes import ComparatorAtom, Literal, PredicateAtom
 from json_logic_asp.translator.adapters.asp.asp_statements import RuleStatement
+from json_logic_asp.translator.adapters.json_logic.jl_data_nodes import DataVarNode
 from json_logic_asp.translator.models.jl_base import JsonLogicDefinitionNode, JsonLogicFactNode, JsonLogicRuleNode
-from json_logic_asp.utils.id_management import generate_unique_id
+from json_logic_asp.utils.id_management import generate_constant_string, generate_unique_id
+from json_logic_asp.utils.json_logic_helpers import value_encoder
 
 
 class LogicEvalNode(JsonLogicRuleNode):
@@ -34,30 +36,34 @@ class LogicEvalNode(JsonLogicRuleNode):
         if isinstance(right_statement, JsonLogicDefinitionNode):
             literals.extend([stmt.atom for stmt in right_statement.asp_statements])
         else:
-            right_val = right_statement
-            if isinstance(right_val, str):
-                right_val = f"'{right_val}'"
             literals.append(
                 ComparatorAtom(
                     variable_name="V",
                     comparator=comparator,
-                    target=right_val,
+                    target=value_encoder(right_statement),
                 )
             )
+
+        comment = None
+        if isinstance(left_statement, DataVarNode) and not isinstance(right_statement, JsonLogicDefinitionNode):
+            comment = f"{left_statement.var_name} {self.predicate.upper()} {right_statement}"
 
         self.statement = RuleStatement(
             atom=PredicateAtom(predicate_name=self.predicate, terms=[node_id]),
             literals=literals,
+            comment=comment,
         )
 
         super().__init__(node_id=node_id, asp_statements=[self.statement])
 
-    def to_asp(self):
+    def to_asp(self, with_comment: bool = False):
         stmts = []
         for child_node in [self.__node_statements]:
             if isinstance(child_node, JsonLogicFactNode):
-                stmts.extend(child_node.to_asp())
+                stmts.extend(child_node.to_asp(with_comment=with_comment))
 
+        if with_comment and self.statement.comment_to_asp():
+            stmts.append(self.statement.comment_to_asp())
         stmts.append(self.statement.to_asp())
         return stmts
 

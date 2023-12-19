@@ -17,7 +17,7 @@ class PredicateAtom(Literal):
     def to_asp(self):
         asp_terms = ""
         if self.terms:
-            asp_terms = f"({', '.join(self.terms)})"
+            asp_terms = f"({', '.join([str(term) for term in self.terms])})"
 
         negated = ""
         if self.negated:

@@ -1,14 +1,15 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from json_logic_asp.constants.json_logic_ops import JsonLogicOps
 from json_logic_asp.translator.adapters.asp.asp_nodes import PredicateAtom
 from json_logic_asp.translator.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.translator.adapters.json_logic.jl_array_nodes import ArrayInNode
 from json_logic_asp.translator.adapters.json_logic.jl_boolean_nodes import BooleanAndNode, BooleanNotNode, BooleanOrNode
-from json_logic_asp.translator.adapters.json_logic.jl_data_nodes import DataVarNode
+from json_logic_asp.translator.adapters.json_logic.jl_data_nodes import DataVarNode, DataMissingNode
 from json_logic_asp.translator.adapters.json_logic.jl_logic_nodes import LogicEvalNode
 from json_logic_asp.translator.models.jl_base import JsonLogicDefinitionNode
 from json_logic_asp.translator.models.translator import RuleInput
+from json_logic_asp.utils.id_management import generate_constant_string
 from json_logic_asp.utils.json_logic_helpers import extract_key_and_value_from_node
 from json_logic_asp.utils.list_utils import remove_duplicates
 
@@ -21,13 +22,16 @@ def __parse_json_logic_node(node: Dict[str, Any]) -> JsonLogicDefinitionNode:
     jl_node: Optional[JsonLogicDefinitionNode] = None
     if node_key == JsonLogicOps.DATA_VAR:
         jl_node = DataVarNode(var_name=node_value)
+    elif node_key == JsonLogicOps.DATA_MISSING:
+        jl_node = DataMissingNode(var_name=node_value)
+
+    if jl_node:
         h = str(hash(jl_node))
         if h in RULE_NODE_CACHE:
             jl_node = RULE_NODE_CACHE[h]
         else:
             RULE_NODE_CACHE[h] = jl_node
 
-    if jl_node is not None:
         return jl_node
 
     child_nodes: List[JsonLogicDefinitionNode]
@@ -96,28 +100,41 @@ def __parse_json_logic_node(node: Dict[str, Any]) -> JsonLogicDefinitionNode:
     return jl_node
 
 
-def generate_multiple_rule_asp_definition(rules: List[RuleInput]) -> str:
+def generate_multiple_rule_asp_definition(
+    rule_inputs: List[RuleInput], with_comments: bool = False
+) -> Tuple[str, Dict[str, str]]:
     global RULE_NODE_CACHE
     RULE_NODE_CACHE = dict()
 
     statements = []
     root_statements = []
 
-    for rule_input in rules:
+    mapping = {}
+
+    for rule_input in rule_inputs:
         root_node = __parse_json_logic_node(node=rule_input.rule_tree)
-        statements.extend(root_node.to_asp())
+        statements.extend(root_node.to_asp(with_comment=with_comments))
         # statements = root_node.to_asp()
 
+        hashed_id = generate_constant_string(rule_input.rule_id)
+        mapping[hashed_id] = rule_input.rule_id
+
         root_statement = RuleStatement(
-            atom=PredicateAtom(predicate_name="rule", terms=[f"'{rule_input.rule_id}'"]),
+            atom=PredicateAtom(predicate_name="rule", terms=[hashed_id]),
             literals=[stmt.atom for stmt in root_node.asp_statements],
+            comment=rule_input.rule_id,
         )
+        if with_comments:
+            root_statements.append(root_statement.comment_to_asp())
         root_statements.append(root_statement.to_asp())
 
     statements = remove_duplicates(statements + root_statements)
 
-    return "\n".join(statements)
+    return "\n".join(statements), mapping
 
 
-def generate_single_rule_asp_definition(rule_input: RuleInput) -> str:
-    return generate_multiple_rule_asp_definition([rule_input])
+def generate_single_rule_asp_definition(
+    rule_input: RuleInput, with_comments: bool = False
+) -> str:
+    definition, _ = generate_multiple_rule_asp_definition(rule_inputs=[rule_input], with_comments=with_comments)
+    return definition

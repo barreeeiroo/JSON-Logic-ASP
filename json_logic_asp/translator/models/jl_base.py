@@ -13,7 +13,7 @@ class JsonLogicNode(ABC, Generic[TStatement]):
         self.asp_statements = asp_statements
 
     @abstractmethod
-    def to_asp(self) -> List[str]:
+    def to_asp(self, with_comment: bool = False) -> List[str]:
         raise NotImplementedError()
 
     @abstractmethod

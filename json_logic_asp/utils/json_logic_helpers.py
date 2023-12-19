@@ -1,4 +1,6 @@
-from typing import Dict
+from typing import Dict, Union
+
+from json_logic_asp.utils.id_management import generate_constant_string
 
 
 def extract_key_and_value_from_node(node: Dict):
@@ -6,3 +8,17 @@ def extract_key_and_value_from_node(node: Dict):
     node_value = node[node_key]
 
     return node_key, node_value
+
+
+def value_encoder(val: Union[str, int, float, bool]) -> Union[str, int]:
+    if isinstance(val, str):
+        val = generate_constant_string(val)
+    elif isinstance(val, bool):
+        val = str(val).lower()
+    elif isinstance(val, int):
+        val = val
+        # TODO: float
+    else:
+        val = str(val)
+
+    return val
