@@ -9,8 +9,8 @@ class FactStatement(Statement):
         super().__init__(*args, **kwargs)
         self.atom = atom
 
-    def to_asp(self):
-        return f"{self.atom.to_asp()}."
+    def to_asp_statement(self):
+        return f"{self.atom.to_asp_atom()}."
 
 
 class RuleStatement(Statement):
@@ -19,8 +19,8 @@ class RuleStatement(Statement):
         self.atom = atom
         self.literals = literals
 
-    def to_asp(self):
-        return f"{self.atom.to_asp()} :- {', '.join([literal.to_asp() for literal in self.literals])}."
+    def to_asp_statement(self):
+        return f"{self.atom.to_asp_atom()} :- {', '.join([literal.to_asp_atom() for literal in self.literals])}."
 
 
 class DirectiveStatement(Statement):
@@ -29,7 +29,7 @@ class DirectiveStatement(Statement):
         self.action = action
         self.statement = statement
 
-    def to_asp(self):
+    def to_asp_statement(self):
         return f"#{self.action} {self.statement}."
 
 

@@ -14,7 +14,7 @@ class PredicateAtom(Literal):
         self.terms = terms
         self.negated = negated
 
-    def to_asp(self):
+    def to_asp_atom(self):
         asp_terms = ""
         if self.terms:
             asp_terms = f"({', '.join([str(term) for term in self.terms])})"
@@ -31,7 +31,7 @@ class VariableAtom(Literal):
         self.variable_name = variable_name
         self.value = value
 
-    def to_asp(self):
+    def to_asp_atom(self):
         return f"{self.variable_name} = {self.value}"
 
 
@@ -41,5 +41,5 @@ class ComparatorAtom(Literal):
         self.comparator = comparator
         self.target = target
 
-    def to_asp(self):
+    def to_asp_atom(self):
         return f"{self.variable_name} {self.comparator} {self.target}"

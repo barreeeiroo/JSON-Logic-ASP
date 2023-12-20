@@ -17,7 +17,7 @@ def translate_multi_rule_eval(rule_inputs: List[RuleInput], data_input: DataInpu
     stmts.append("")
     stmts.append(rule_str)
     stmts.append("")
-    stmts.append(ShowStatement("rule", 1).to_asp())
+    stmts.append(ShowStatement("rule", 1).to_asp_statement())
 
     return DataOutput(
         statements=stmts,

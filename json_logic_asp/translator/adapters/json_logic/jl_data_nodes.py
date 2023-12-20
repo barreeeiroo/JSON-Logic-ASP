@@ -18,7 +18,7 @@ class DataVarNode(JsonLogicFactNode):
         super().__init__(node_id=self.var_name, asp_statements=[self.statement])
 
     def to_asp(self, with_comment: bool = False):
-        return [self.statement.to_asp()]
+        return [self.statement.to_asp_statement()]
 
     def __str__(self):
         return f"VAR({self.var_name})"
@@ -43,7 +43,7 @@ class DataMissingNode(JsonLogicFactNode):
         super().__init__(node_id=self.var_name, asp_statements=[self.statement])
 
     def to_asp(self, with_comment: bool = False):
-        return [self.statement.to_asp()]
+        return [self.statement.to_asp_statement()]
 
     def __str__(self):
         return f"MISSING({self.var_name})"

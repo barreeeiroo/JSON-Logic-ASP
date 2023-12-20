@@ -56,9 +56,9 @@ class ArrayInNode(JsonLogicRuleNode):
             if isinstance(child_node, JsonLogicFactNode):
                 stmts.extend(child_node.to_asp(with_comment=with_comment))
 
-        if with_comment and self.statement.comment_to_asp():
-            stmts.append(self.statement.comment_to_asp())
-        stmts.append(self.statement.to_asp())
+        if with_comment and self.statement.to_asp_comment():
+            stmts.append(self.statement.to_asp_comment())
+        stmts.append(self.statement.to_asp_statement())
         return stmts
 
     def __str__(self):

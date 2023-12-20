@@ -6,17 +6,17 @@ class Statement(ABC):
     def __init__(self, comment: Optional[str] = None):
         self.comment = comment
 
-    def comment_to_asp(self):
+    def to_asp_comment(self):
         if self.comment:
             return f"% {self.comment}"
         return None
 
     @abstractmethod
-    def to_asp(self) -> str:
+    def to_asp_statement(self) -> str:
         raise NotImplementedError()
 
 
 class Atom(ABC):
     @abstractmethod
-    def to_asp(self):
+    def to_asp_atom(self):
         raise NotImplementedError()

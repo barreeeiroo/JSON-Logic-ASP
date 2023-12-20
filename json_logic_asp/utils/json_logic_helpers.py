@@ -15,9 +15,11 @@ def value_encoder(val: Union[str, int, float, bool]) -> Union[str, int]:
         val = generate_constant_string(val)
     elif isinstance(val, bool):
         val = str(val).lower()
+    elif isinstance(val, float):
+        # TODO: This is wrong...
+        val = int(val)
     elif isinstance(val, int):
         val = val
-        # TODO: float
     else:
         val = str(val)
 

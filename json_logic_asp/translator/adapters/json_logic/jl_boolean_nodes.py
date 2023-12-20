@@ -32,9 +32,9 @@ class BooleanAndNode(JsonLogicRuleNode):
         for child_node in self.child_nodes:
             stmts.extend(child_node.to_asp(with_comment=with_comment))
 
-        if with_comment and self.statement.comment_to_asp():
-            stmts.append(self.statement.comment_to_asp())
-        stmts.append(self.statement.to_asp())
+        if with_comment and self.statement.to_asp_comment():
+            stmts.append(self.statement.to_asp_comment())
+        stmts.append(self.statement.to_asp_statement())
         return stmts
 
     def __str__(self):
@@ -74,9 +74,9 @@ class BooleanOrNode(JsonLogicRuleNode):
             stmts.extend(child_node.to_asp(with_comment=with_comment))
 
         for statement in self.statements:
-            if with_comment and statement.comment_to_asp():
-                stmts.append(statement.comment_to_asp())
-            stmts.append(statement.to_asp())
+            if with_comment and statement.to_asp_comment():
+                stmts.append(statement.to_asp_comment())
+            stmts.append(statement.to_asp_statement())
 
         return stmts
 
@@ -121,11 +121,13 @@ class BooleanNotNode(JsonLogicRuleNode):
     def to_asp(self, with_comment: bool = False):
         stmts = []
         for child_node in self.child_nodes:
+            if isinstance(child_node, DataVarNode):
+                continue
             stmts.extend(child_node.to_asp(with_comment=with_comment))
 
-        if with_comment and self.statement.comment_to_asp():
-            stmts.append(self.statement.comment_to_asp())
-        stmts.append(self.statement.to_asp())
+        if with_comment and self.statement.to_asp_comment():
+            stmts.append(self.statement.to_asp_comment())
+        stmts.append(self.statement.to_asp_statement())
         return stmts
 
     def __str__(self):

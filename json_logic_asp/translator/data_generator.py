@@ -50,8 +50,8 @@ def generate_single_data_asp_definition(data_input: DataInput, with_comments: bo
             comment=f"{var_name} : {var_value}",
         )
         if with_comments:
-            statements.append(stmt.comment_to_asp())
-        statements.append(stmt.to_asp())
+            statements.append(stmt.to_asp_comment())
+        statements.append(stmt.to_asp_statement())
 
     statements = remove_duplicates(statements)
 

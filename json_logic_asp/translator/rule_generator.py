@@ -15,9 +15,29 @@ from json_logic_asp.utils.list_utils import remove_duplicates
 
 RULE_NODE_CACHE: Dict[str, JsonLogicDefinitionNode] = {}
 
+SUPPORTED_NODE_TYPES = [
+    JsonLogicOps.DATA_VAR,
+    JsonLogicOps.DATA_MISSING,
+    JsonLogicOps.BOOLEAN_AND,
+    JsonLogicOps.BOOLEAN_OR,
+    JsonLogicOps.BOOLEAN_NOT,
+    JsonLogicOps.LOGIC_EQ,
+    JsonLogicOps.LOGIC_STRICT_EQ,
+    JsonLogicOps.LOGIC_NOT_EQ,
+    JsonLogicOps.LOGIC_STRICT_NOT_EQ,
+    JsonLogicOps.NUMERIC_GT,
+    JsonLogicOps.NUMERIC_GTE,
+    JsonLogicOps.NUMERIC_LT,
+    JsonLogicOps.NUMERIC_LTE,
+    JsonLogicOps.ARRAY_IN,
+]
+
 
 def __parse_json_logic_node(node: Dict[str, Any]) -> JsonLogicDefinitionNode:
     node_key, node_value = extract_key_and_value_from_node(node)
+
+    if node_key not in SUPPORTED_NODE_TYPES:
+        raise NotImplementedError(f"Node {node_key} is not yet implemented")
 
     jl_node: Optional[JsonLogicDefinitionNode] = None
     if node_key == JsonLogicOps.DATA_VAR:
@@ -48,13 +68,15 @@ def __parse_json_logic_node(node: Dict[str, Any]) -> JsonLogicDefinitionNode:
         jl_node = BooleanOrNode(child_nodes)
     elif node_key == JsonLogicOps.BOOLEAN_NOT:
         jl_node = BooleanNotNode(child_nodes)
-    elif node_key == JsonLogicOps.LOGIC_EQ:
+    # TODO: This is wrong...
+    elif node_key == JsonLogicOps.LOGIC_EQ or node_key == JsonLogicOps.LOGIC_STRICT_EQ:
         if len(child_nodes) != 2:
             raise ValueError(f"EQ operator expects 2 children, received {len(child_nodes)}")
         jl_node = LogicEvalNode(
             comparator="==", predicate="eq", left_statement=child_nodes[0], right_statement=child_nodes[1]
         )
-    elif node_key == JsonLogicOps.LOGIC_NOT_EQ:
+    # TODO: This is wrong...
+    elif node_key == JsonLogicOps.LOGIC_NOT_EQ or node_key == JsonLogicOps.LOGIC_STRICT_NOT_EQ:
         if len(child_nodes) != 2:
             raise ValueError(f"NEQ operator expects 2 children, received {len(child_nodes)}")
         jl_node = LogicEvalNode(
@@ -88,8 +110,6 @@ def __parse_json_logic_node(node: Dict[str, Any]) -> JsonLogicDefinitionNode:
         if len(child_nodes) != 2:
             raise ValueError(f"IN operator expects 2 children, received {len(child_nodes)}")
         jl_node = ArrayInNode(left_statement=child_nodes[0], right_statement=child_nodes[1])
-    else:
-        raise NotImplementedError(f"Node {node_key} is not yet implemented")
 
     h = str(hash(jl_node))
     if h in RULE_NODE_CACHE:
@@ -125,8 +145,8 @@ def generate_multiple_rule_asp_definition(
             comment=rule_input.rule_id,
         )
         if with_comments:
-            root_statements.append(root_statement.comment_to_asp())
-        root_statements.append(root_statement.to_asp())
+            root_statements.append(root_statement.to_asp_comment())
+        root_statements.append(root_statement.to_asp_statement())
 
     statements = remove_duplicates(statements + root_statements)
 
