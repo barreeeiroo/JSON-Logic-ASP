@@ -1,0 +1,83 @@
+from typing import Dict, List, Any
+
+from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
+from json_logic_asp.adapters.asp.asp_statements import RuleStatement
+from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
+from json_logic_asp.models.asp_base import Statement
+from json_logic_asp.models.json_logic_nodes import JsonLogicInnerNode, JsonLogicLeafNode
+from json_logic_asp.utils.id_management import generate_constant_string
+
+
+class BooleanAndNode(JsonLogicInnerNode):
+    def __init__(self, child_nodes: List[Any]):
+        super().__init__(operation_name="and")
+
+        for child_node in child_nodes:
+            self.add_child(child_node)
+
+    def get_asp_statements(self) -> List[Statement]:
+        # For each child node, get the atom and use it as literal
+        child_statements: Dict[str, PredicateAtom] = {}
+        for child_node in self.child_nodes:
+            assert isinstance(child_node, (JsonLogicInnerNode, JsonLogicLeafNode,))
+            child_statements[child_node.node_id] = child_node.get_asp_atom()
+
+        return [RuleStatement(
+            atom=self.get_asp_atom(),
+            literals=list(child_statements.values()),
+        )]
+
+
+class BooleanOrNode(JsonLogicInnerNode):
+    def __init__(self, child_nodes: List[Any]):
+        super().__init__(operation_name="or")
+
+        for child_node in child_nodes:
+            self.add_child(child_node)
+
+    def get_asp_statements(self) -> List[Statement]:
+        stmts: List[Statement] = []
+
+        for child_node in self.child_nodes:
+            assert isinstance(child_node, (JsonLogicInnerNode, JsonLogicLeafNode,))
+            statement = RuleStatement(
+                atom=self.get_asp_atom(),
+                literals=[child_node.get_asp_atom()],
+            )
+            stmts.append(statement)
+
+        return stmts
+
+
+class BooleanNotNode(JsonLogicInnerNode):
+    def __init__(self, child_nodes: List[Any]):
+        super().__init__(operation_name="neg")
+
+        if len(child_nodes) != 1:
+            raise ValueError(f"BooleanNotNode expects only 1 child, received {len(child_nodes)}")
+
+        self.add_child(child_nodes[0])
+
+    def get_asp_statements(self) -> List[Statement]:
+        # For each child node, get the atom and use it as literal
+        child_statements: Dict[str, PredicateAtom] = {}
+        for child_node in self.child_nodes:
+            if isinstance(child_node, DataVarNode):
+                # Handle specific case for negating "var" nodes as "not present"
+                child_statements[child_node.node_id] = PredicateAtom(
+                    predicate_name="var",
+                    terms=[generate_constant_string(child_node.var_name), "_"],
+                    negated=True,
+                )
+            else:
+                for asp_statement in child_node.asp_statements:
+                    child_statements[child_node.id] = PredicateAtom(
+                        predicate_name=asp_statement.atom.predicate_name,
+                        terms=asp_statement.atom.terms,
+                        negated=True,
+                    )
+
+        return [RuleStatement(
+            atom=PredicateAtom(predicate_name="neg", terms=[self.node_id]),
+            literals=list(child_statements.values()),
+        )]

@@ -1,7 +1,7 @@
 from typing import List
 
-from json_logic_asp.translator.adapters.asp.asp_nodes import Literal, PredicateAtom
-from json_logic_asp.translator.models.asp_base import Statement
+from json_logic_asp.adapters.asp.asp_literals import Literal, PredicateAtom
+from json_logic_asp.models.asp_base import Statement
 
 
 class FactStatement(Statement):
