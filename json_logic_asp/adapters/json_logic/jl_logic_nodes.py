@@ -105,6 +105,9 @@ class LogicEvalNode(JsonLogicLeafNode, ABC):
 
         self.__child_nodes: List[Union[DataVarNode, str, bool, float, int]] = []
         for node in node_value:
+            if isinstance(node, list) and len(node) == 1:
+                node = node[0]
+
             if not isinstance(node, (DataVarNode, str, bool, float, int)):
                 raise ValueError(f"LogicEvalNode received unexpected node type {type(node)}")
 
