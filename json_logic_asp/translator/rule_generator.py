@@ -6,10 +6,10 @@ from json_logic_asp.adapters.json_logic.jl_array_nodes import ArrayInNode
 from json_logic_asp.adapters.json_logic.jl_boolean_nodes import BooleanAndNode, BooleanNotNode, BooleanOrNode
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataMissingNode, DataVarNode
 from json_logic_asp.adapters.json_logic.jl_logic_nodes import (
-    LogicIfNode,
     LogicEqualNode,
     LogicGreaterOrEqualThanNode,
     LogicGreaterThanNode,
+    LogicIfNode,
     LogicLowerOrEqualThanNode,
     LogicLowerThanNode,
     LogicNotEqualNode,

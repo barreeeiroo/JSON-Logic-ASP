@@ -5,9 +5,9 @@ from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal, Pr
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
 from json_logic_asp.models.asp_base import Statement
-from json_logic_asp.models.json_logic_nodes import JsonLogicLeafNode, JsonLogicInnerNode
-from json_logic_asp.utils.json_logic_helpers import value_encoder
+from json_logic_asp.models.json_logic_nodes import JsonLogicInnerNode, JsonLogicLeafNode
 from json_logic_asp.utils.id_management import generate_unique_id
+from json_logic_asp.utils.json_logic_helpers import value_encoder
 
 
 class LogicIfNode(JsonLogicInnerNode):
@@ -39,49 +39,53 @@ class LogicIfNode(JsonLogicInnerNode):
 
         begin_i, end_i = 0, min(total_nodes, 2)
         # if(node1) :- A, B
-        stmts.append(RuleStatement(
-            atom=self.get_asp_atom(),
-            literals=[child.get_asp_atom() for child in self.child_nodes[begin_i:end_i]],
-        ))
+        stmts.append(
+            RuleStatement(
+                atom=self.get_asp_atom(),
+                literals=[child.get_asp_atom() for child in self.child_nodes[begin_i:end_i]],
+            )
+        )
         negated_atoms.append(self.child_nodes[begin_i].get_negated_asp_atom())
         prev_atom = self.get_asp_atom()
 
         for elif_id in range(total_elifs):
-            new_atom = PredicateAtom(
-                predicate_name="elif",
-                terms=[generate_unique_id()]
-            )
+            new_atom = PredicateAtom(predicate_name="elif", terms=[generate_unique_id()])
             # if(node1) :- elif(node2)
-            stmts.append(RuleStatement(
-                atom=prev_atom,
-                literals=[new_atom],
-            ))
+            stmts.append(
+                RuleStatement(
+                    atom=prev_atom,
+                    literals=[new_atom],
+                )
+            )
             begin_i += 2
             end_i += 2
             # elif(node2) :- not A, C, D
-            stmts.append(RuleStatement(
-                atom=new_atom,
-                literals=negated_atoms + [child.get_asp_atom() for child in self.child_nodes[begin_i:end_i]],
-            ))
+            stmts.append(
+                RuleStatement(
+                    atom=new_atom,
+                    literals=negated_atoms + [child.get_asp_atom() for child in self.child_nodes[begin_i:end_i]],
+                )
+            )
             negated_atoms.append(self.child_nodes[begin_i].get_negated_asp_atom())
             prev_atom = new_atom
 
         if has_else:
-            new_atom = PredicateAtom(
-                predicate_name="else",
-                terms=[generate_unique_id()]
+            new_atom = PredicateAtom(predicate_name="else", terms=[generate_unique_id()])
+            stmts.append(
+                RuleStatement(
+                    atom=prev_atom,
+                    literals=[new_atom],
+                )
             )
-            stmts.append(RuleStatement(
-                atom=prev_atom,
-                literals=[new_atom],
-            ))
             begin_i += 2
             end_i += 1
             # else(nodeZ) :- not A, not C, not E, Z.
-            stmts.append(RuleStatement(
-                atom=new_atom,
-                literals=negated_atoms + [child.get_asp_atom() for child in self.child_nodes[begin_i:end_i]],
-            ))
+            stmts.append(
+                RuleStatement(
+                    atom=new_atom,
+                    literals=negated_atoms + [child.get_asp_atom() for child in self.child_nodes[begin_i:end_i]],
+                )
+            )
 
         return list(reversed(stmts))
 
