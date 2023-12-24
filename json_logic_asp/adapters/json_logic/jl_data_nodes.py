@@ -1,7 +1,7 @@
 from typing import Any, List, Set
 
 from json_logic_asp.adapters.asp.asp_literals import Literal, PredicateAtom
-from json_logic_asp.adapters.asp.asp_statements import FactStatement, RuleStatement
+from json_logic_asp.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.models.asp_base import Statement
 from json_logic_asp.models.json_logic_nodes import JsonLogicLeafNode
 from json_logic_asp.utils.id_management import generate_constant_string
@@ -34,7 +34,8 @@ class DataVarNode(JsonLogicLeafNode):
         )
 
     def get_asp_statements(self) -> List[Statement]:
-        return [FactStatement(atom=self.get_asp_atom())]
+        # return [FactStatement(atom=self.get_asp_atom())]
+        return []
 
     def __str__(self):
         return f"VAR({self.var_name})"
@@ -61,6 +62,7 @@ class DataMissingNode(JsonLogicLeafNode):
 
     def get_asp_statements(self) -> List[Statement]:
         literals: List[Literal] = []
+        comment = "Missing "
 
         for var_name in self.var_names:
             literals.append(
@@ -70,11 +72,13 @@ class DataMissingNode(JsonLogicLeafNode):
                     negated=True,
                 )
             )
+            comment += var_name
 
         return [
             RuleStatement(
                 atom=self.get_asp_atom(),
                 literals=literals,
+                comment=comment,
             )
         ]
 

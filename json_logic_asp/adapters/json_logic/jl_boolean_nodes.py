@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
@@ -61,6 +61,7 @@ class BooleanNotNode(JsonLogicInnerNode):
     def get_asp_statements(self) -> List[Statement]:
         # For each child node, get the atom and use it as literal
         child_statements: Dict[str, PredicateAtom] = {}
+        comment: Optional[str] = None
         for child_node in self.child_nodes:
             if isinstance(child_node, DataVarNode):
                 # Handle specific case for negating "var" nodes as "not present"
@@ -69,17 +70,19 @@ class BooleanNotNode(JsonLogicInnerNode):
                     terms=[generate_constant_string(child_node.var_name), "_"],
                     negated=True,
                 )
+                comment = f"Not {child_node.var_name}"
             else:
                 child_atom = child_node.get_asp_atom()
                 child_statements[child_node.node_id] = PredicateAtom(
-                    predicate_name=child_atom,
+                    predicate_name=child_atom.predicate_name,
                     terms=child_atom.terms,
-                    negated=True,
+                    negated=not child_atom.negated,
                 )
 
         return [
             RuleStatement(
                 atom=PredicateAtom(predicate_name="neg", terms=[self.node_id]),
                 literals=list(child_statements.values()),
+                comment=comment,
             )
         ]
