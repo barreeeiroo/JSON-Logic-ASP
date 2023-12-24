@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import List, Tuple, final, Type, Union, Any
+from typing import Any, List, Tuple, Type, Union, final
 
 from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.models.asp_base import Statement
@@ -22,7 +22,7 @@ class JsonLogicNode(ABC):
             return
 
         if not isinstance(child_node, self.__accepted_child_node_types):
-            raise ValueError(f'Found unexpected child_node type {type(child_node)} for {self.__class__.__name__}')
+            raise ValueError(f"Found unexpected child_node type {type(child_node)} for {self.__class__.__name__}")
 
         self.child_nodes.append(child_node)
 
@@ -44,7 +44,7 @@ class JsonLogicNode(ABC):
             stmts.extend(child_node.to_asp(with_comment=with_comment))
 
         for statement in self.get_asp_statements():
-            if with_comment:
+            if with_comment and statement.to_asp_comment():
                 stmts.append(statement.to_asp_comment())
             stmts.append(statement.to_asp_statement())
 
@@ -52,7 +52,7 @@ class JsonLogicNode(ABC):
 
     def _get_children_hash(self):
         child_hashes = [hash(child) for child in self.child_nodes]
-        return hash(tuple(*sorted(child_hashes)))
+        return hash(tuple(sorted(child_hashes)))
 
     @abstractmethod
     def __str__(self):
@@ -65,8 +65,14 @@ class JsonLogicNode(ABC):
 
 class JsonLogicInnerNode(JsonLogicNode, ABC):
     def __init__(self, *args, **kwargs):
-        super().__init__(accepted_child_node_types=(JsonLogicInnerNode, JsonLogicLeafNode,),
-                         *args, **kwargs)
+        super().__init__(
+            accepted_child_node_types=(
+                JsonLogicInnerNode,
+                JsonLogicLeafNode,
+            ),
+            *args,
+            **kwargs,
+        )
 
     @final
     def get_asp_atom(self) -> PredicateAtom:
@@ -79,19 +85,25 @@ class JsonLogicInnerNode(JsonLogicNode, ABC):
         return f"{self.operation_name.upper()}({self.node_id})"
 
     def __hash__(self):
-        return hash((self.operation_name, self._get_children_hash(),))
+        return hash(
+            (
+                self.operation_name,
+                self._get_children_hash(),
+            )
+        )
 
 
 class JsonLogicLeafNode(JsonLogicNode, ABC):
     def __init__(self, allows_primitives: bool = False, allows_lists: bool = False, *args, **kwargs):
-        allowed_types: List[Type, ...] = [JsonLogicLeafNode]
+        allowed_types: List[Type] = [JsonLogicLeafNode]
         if allows_primitives:
             allowed_types.extend([str, int, float, bool])
         if allows_lists:
             allowed_types.extend([List[Union[str, int, float, bool]]])
 
-        super().__init__(accepted_child_node_types=tuple(allowed_types),
-                         *args, **kwargs)
+        kwargs["accepted_child_node_types"] = tuple(allowed_types)
+
+        super().__init__(*args, **kwargs)
 
     def get_asp_atom(self) -> PredicateAtom:
         return PredicateAtom(

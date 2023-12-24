@@ -1,6 +1,6 @@
-from typing import List, Any, Set
+from typing import Any, List, Set
 
-from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
+from json_logic_asp.adapters.asp.asp_literals import Literal, PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import FactStatement, RuleStatement
 from json_logic_asp.models.asp_base import Statement
 from json_logic_asp.models.json_logic_nodes import JsonLogicLeafNode
@@ -12,7 +12,7 @@ class DataVarNode(JsonLogicLeafNode):
         super().__init__(operation_name="var")
 
         if not isinstance(node_value, str):
-            raise ValueError(f'DataVarNode requires str as value, received {type(node_value)}')
+            raise ValueError(f"DataVarNode requires str as value, received {type(node_value)}")
 
         self.var_name = node_value
         self.var_variable = "V"
@@ -20,23 +20,20 @@ class DataVarNode(JsonLogicLeafNode):
     def get_asp_atom(self) -> PredicateAtom:
         return PredicateAtom(
             predicate_name="var",
-            terms=[
-                generate_constant_string(self.var_name), self.var_variable
-            ],
+            terms=[generate_constant_string(self.var_name), self.var_variable],
         )
 
     def get_asp_atom_with_different_variable_name(self, var_name: str):
         return PredicateAtom(
             predicate_name="var",
             terms=[
-                generate_constant_string(self.var_name), var_name,
+                generate_constant_string(self.var_name),
+                var_name,
             ],
         )
 
     def get_asp_statements(self) -> List[Statement]:
-        return [
-            FactStatement(atom=self.get_asp_atom())
-        ]
+        return [FactStatement(atom=self.get_asp_atom())]
 
     def __str__(self):
         return f"VAR({self.var_name})"
@@ -53,23 +50,25 @@ class DataMissingNode(JsonLogicLeafNode):
             node_value = [node_value]
 
         if not isinstance(node_value, list):
-            raise ValueError(f'DataVarNode requires list as value, received {type(node_value)}')
+            raise ValueError(f"DataVarNode requires list as value, received {type(node_value)}")
 
         self.var_names: Set[str] = set()
         for var_name in node_value:
             if not isinstance(var_name, str):
-                raise ValueError(f'DataVarNode requires str as value, received {type(var_name)}')
+                raise ValueError(f"DataVarNode requires str as value, received {type(var_name)}")
             self.var_names.add(var_name)
 
     def get_asp_statements(self) -> List[Statement]:
-        literals: List[PredicateAtom] = []
+        literals: List[Literal] = []
 
         for var_name in self.var_names:
-            literals.append(PredicateAtom(
-                predicate_name="var",
-                terms=[generate_constant_string(var_name), "_"],
-                negated=True,
-            ))
+            literals.append(
+                PredicateAtom(
+                    predicate_name="var",
+                    terms=[generate_constant_string(var_name), "_"],
+                    negated=True,
+                )
+            )
 
         return [
             RuleStatement(

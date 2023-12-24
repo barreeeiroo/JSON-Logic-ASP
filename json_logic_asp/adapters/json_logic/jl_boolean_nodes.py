@@ -1,4 +1,4 @@
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
@@ -19,13 +19,21 @@ class BooleanAndNode(JsonLogicInnerNode):
         # For each child node, get the atom and use it as literal
         child_statements: Dict[str, PredicateAtom] = {}
         for child_node in self.child_nodes:
-            assert isinstance(child_node, (JsonLogicInnerNode, JsonLogicLeafNode,))
+            assert isinstance(
+                child_node,
+                (
+                    JsonLogicInnerNode,
+                    JsonLogicLeafNode,
+                ),
+            )
             child_statements[child_node.node_id] = child_node.get_asp_atom()
 
-        return [RuleStatement(
-            atom=self.get_asp_atom(),
-            literals=list(child_statements.values()),
-        )]
+        return [
+            RuleStatement(
+                atom=self.get_asp_atom(),
+                literals=list(child_statements.values()),
+            )
+        ]
 
 
 class BooleanOrNode(JsonLogicInnerNode):
@@ -39,7 +47,13 @@ class BooleanOrNode(JsonLogicInnerNode):
         stmts: List[Statement] = []
 
         for child_node in self.child_nodes:
-            assert isinstance(child_node, (JsonLogicInnerNode, JsonLogicLeafNode,))
+            assert isinstance(
+                child_node,
+                (
+                    JsonLogicInnerNode,
+                    JsonLogicLeafNode,
+                ),
+            )
             statement = RuleStatement(
                 atom=self.get_asp_atom(),
                 literals=[child_node.get_asp_atom()],
@@ -70,14 +84,16 @@ class BooleanNotNode(JsonLogicInnerNode):
                     negated=True,
                 )
             else:
-                for asp_statement in child_node.asp_statements:
-                    child_statements[child_node.id] = PredicateAtom(
-                        predicate_name=asp_statement.atom.predicate_name,
-                        terms=asp_statement.atom.terms,
-                        negated=True,
-                    )
+                child_atom = child_node.get_asp_atom()
+                child_statements[child_node.node_id] = PredicateAtom(
+                    predicate_name=child_atom,
+                    terms=child_atom.terms,
+                    negated=True,
+                )
 
-        return [RuleStatement(
-            atom=PredicateAtom(predicate_name="neg", terms=[self.node_id]),
-            literals=list(child_statements.values()),
-        )]
+        return [
+            RuleStatement(
+                atom=PredicateAtom(predicate_name="neg", terms=[self.node_id]),
+                literals=list(child_statements.values()),
+            )
+        ]

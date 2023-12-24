@@ -1,12 +1,12 @@
 from typing import Dict
 
-from json_logic_asp.translator.adapters.asp.asp_nodes import PredicateAtom
-from json_logic_asp.translator.adapters.asp.asp_statements import FactStatement
-from json_logic_asp.translator.models.jl_base import JsonLogicNode
-from json_logic_asp.translator.models.translator import DataInput
+from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
+from json_logic_asp.adapters.asp.asp_statements import FactStatement
+from json_logic_asp.models.json_logic_nodes import JsonLogicNode
+from json_logic_asp.models.translator_dto import DataInput
 from json_logic_asp.utils.id_management import generate_constant_string
-from json_logic_asp.utils.list_utils import remove_duplicates
 from json_logic_asp.utils.json_logic_helpers import value_encoder
+from json_logic_asp.utils.list_utils import remove_duplicates
 
 DATA_NODE_CACHE: Dict[str, JsonLogicNode] = {}
 

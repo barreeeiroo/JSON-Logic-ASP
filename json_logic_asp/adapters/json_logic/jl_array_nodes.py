@@ -1,6 +1,6 @@
-from typing import List, Any
+from typing import Any, List
 
-from json_logic_asp.adapters.asp.asp_literals import Literal, ComparatorAtom
+from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
 from json_logic_asp.models.asp_base import Statement
@@ -28,12 +28,20 @@ class ArrayInNode(JsonLogicLeafNode):
         self.list_node = right if isinstance(right, list) else left
 
         for list_elem in self.list_node:
-            if not isinstance(list_elem, (str, bool, float, int,)):
+            if not isinstance(
+                list_elem,
+                (
+                    str,
+                    bool,
+                    float,
+                    int,
+                ),
+            ):
                 raise ValueError(f"ArrayInNode expects at least 1 list primitve nodes, received {type(list_elem)}")
 
     def get_asp_statements(self) -> List[Statement]:
         literals: List[Literal] = []
-        literals.extend(self.data_node)
+        literals.append(self.data_node.get_asp_atom())
 
         right_val = [value_encoder(val) for val in self.list_node]
         literals.append(
@@ -46,14 +54,18 @@ class ArrayInNode(JsonLogicLeafNode):
 
         comment = f"{self.data_node.var_name} IN " f"({', '.join([str(stmt) for stmt in self.list_node])})"
 
-        return [RuleStatement(
-            atom=self.get_asp_atom(),
-            literals=literals,
-            comment=comment,
-        )]
+        return [
+            RuleStatement(
+                atom=self.get_asp_atom(),
+                literals=literals,
+                comment=comment,
+            )
+        ]
 
     def __str__(self):
         return f"IN({self.node_id})"
 
     def __hash__(self):
-        return hash(("in", hash(self.data_node), *sorted(self.list_node)), )
+        return hash(
+            ("in", hash(self.data_node), *sorted(self.list_node)),
+        )

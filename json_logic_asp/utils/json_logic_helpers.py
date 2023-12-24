@@ -10,16 +10,16 @@ def extract_key_and_value_from_node(node: Dict):
     return node_key, node_value
 
 
-def value_encoder(val: Union[str, int, float, bool]) -> Union[str, int]:
+def value_encoder(val: Union[str, int, float, bool]) -> str:
     if isinstance(val, str):
         val = generate_constant_string(val)
     elif isinstance(val, bool):
         val = str(val).lower()
     elif isinstance(val, float):
         # TODO: This is wrong...
-        val = int(val)
+        val = str(int(val))
     elif isinstance(val, int):
-        val = val
+        val = str(val)
     else:
         val = str(val)
 

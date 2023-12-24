@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import List, Union, Any, Dict
+from typing import Any, Dict, List, Union
 
 from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
@@ -24,7 +24,7 @@ class LogicEvalNode(JsonLogicLeafNode, ABC):
 
         self.__child_nodes: List[Union[DataVarNode, str, bool, float, int]] = []
         for node in node_value:
-            if not isinstance(node, DataVarNode):
+            if not isinstance(node, (DataVarNode, str, bool, float, int)):
                 raise ValueError(f"LogicEvalNode received unexpected node type {type(node)}")
 
             self.__child_nodes.append(node)
@@ -45,35 +45,84 @@ class LogicEvalNode(JsonLogicLeafNode, ABC):
 
         for i in range(total_comparisons):
             left, right = self.__child_nodes[i], self.__child_nodes[i + 1]
+            comment_part = ""
 
             if isinstance(left, DataVarNode):
+                if i == 0:
+                    comment_parts.append(left.var_name)
                 left = variable_names[left]
             else:
+                if i == 0:
+                    comment_parts.append(str(left))
                 left = value_encoder(left)
+
             if isinstance(right, DataVarNode):
+                comment_parts.append(right.var_name)
                 right = variable_names[right]
             else:
+                comment_parts.append(str(right))
                 right = value_encoder(right)
 
-            literals.append(ComparatorAtom(
-                left_value=left,
-                comparator=self.comparator,
-                right_value=right,
-            ))
+            literals.append(
+                ComparatorAtom(
+                    left_value=left,
+                    comparator=self.comparator,
+                    right_value=right,
+                )
+            )
 
-        return [RuleStatement(
-            atom=self.get_asp_atom(),
-            literals=literals,
-            comment=f" {self.predicate.upper()} ".join(comment_parts),
-        )]
+        return [
+            RuleStatement(
+                atom=self.get_asp_atom(),
+                literals=literals,
+                comment=f" {self.predicate.upper()} ".join(comment_parts),
+            )
+        ]
 
     def __str__(self):
         return f"{self.predicate.upper()}({self.node_id})"
 
     def __hash__(self):
-        return hash((self.predicate, *sorted(hash(child) for child in self.__var_nodes + self.__primitive_nodes)))
+        return hash((self.predicate, *sorted(hash(child) for child in self.__child_nodes)))
 
 
-class LogicEqualsNode(LogicEvalNode):
+class LogicEqualNode(LogicEvalNode):
     def __init__(self, node_value: Any):
-        super().__init__(comparator="=", predicate="eq", node_value=node_value)
+        super().__init__(comparator="==", predicate="eq", node_value=node_value)
+
+
+class LogicNotEqualNode(LogicEvalNode):
+    def __init__(self, node_value: Any):
+        super().__init__(comparator="!=", predicate="neq", node_value=node_value)
+
+
+class LogicStrictEqualNode(LogicEvalNode):
+    def __init__(self, node_value: Any):
+        # TODO: This is wrong
+        super().__init__(comparator="==", predicate="seq", node_value=node_value)
+
+
+class LogicStrictNotEqualNode(LogicEvalNode):
+    def __init__(self, node_value: Any):
+        # TODO: This is wrong
+        super().__init__(comparator="!=", predicate="sneq", node_value=node_value)
+
+
+class LogicLowerThanNode(LogicEvalNode):
+    def __init__(self, node_value: Any):
+        super().__init__(comparator="<", predicate="lt", node_value=node_value)
+
+
+class LogicLowerOrEqualThanNode(LogicEvalNode):
+    def __init__(self, node_value: Any):
+        super().__init__(comparator="<=", predicate="lte", node_value=node_value)
+
+
+class LogicGreaterThanNode(LogicEvalNode):
+    def __init__(self, node_value: Any):
+        super().__init__(comparator=">", predicate="gt", node_value=node_value)
+
+
+class LogicGreaterOrEqualThanNode(LogicEvalNode):
+    def __init__(self, node_value: Any):
+        super().__init__(comparator=">=", predicate="gte", node_value=node_value)
