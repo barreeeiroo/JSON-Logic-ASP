@@ -4,7 +4,7 @@ from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
 from json_logic_asp.models.asp_base import Statement
-from json_logic_asp.models.json_logic_nodes import JsonLogicInnerNode, JsonLogicLeafNode
+from json_logic_asp.models.json_logic_nodes import JsonLogicInnerNode
 from json_logic_asp.utils.id_management import generate_constant_string
 
 
@@ -19,13 +19,6 @@ class BooleanAndNode(JsonLogicInnerNode):
         # For each child node, get the atom and use it as literal
         child_statements: Dict[str, PredicateAtom] = {}
         for child_node in self.child_nodes:
-            assert isinstance(
-                child_node,
-                (
-                    JsonLogicInnerNode,
-                    JsonLogicLeafNode,
-                ),
-            )
             child_statements[child_node.node_id] = child_node.get_asp_atom()
 
         return [
@@ -47,13 +40,6 @@ class BooleanOrNode(JsonLogicInnerNode):
         stmts: List[Statement] = []
 
         for child_node in self.child_nodes:
-            assert isinstance(
-                child_node,
-                (
-                    JsonLogicInnerNode,
-                    JsonLogicLeafNode,
-                ),
-            )
             statement = RuleStatement(
                 atom=self.get_asp_atom(),
                 literals=[child_node.get_asp_atom()],
