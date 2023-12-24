@@ -20,14 +20,18 @@ class DataVarNode(JsonLogicLeafNode):
     def get_asp_atom(self) -> PredicateAtom:
         return PredicateAtom(
             predicate_name="var",
-            terms=[generate_constant_string(self.var_name), self.var_variable],
+            terms=[
+                generate_constant_string(self.var_name),
+                self.var_variable
+            ],
         )
 
     def get_asp_atom_with_different_variable_name(self, var_name: str):
+        atom = self.get_asp_atom()
         return PredicateAtom(
-            predicate_name="var",
+            predicate_name=atom.predicate_name,
             terms=[
-                generate_constant_string(self.var_name),
+                atom.terms[0],
                 var_name,
             ],
         )

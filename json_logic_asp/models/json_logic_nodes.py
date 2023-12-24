@@ -30,6 +30,15 @@ class JsonLogicNode(ABC):
     def get_asp_atom(self) -> PredicateAtom:
         raise NotImplementedError()
 
+    @final
+    def get_negated_asp_atom(self) -> PredicateAtom:
+        atom = self.get_asp_atom()
+        return PredicateAtom(
+            predicate_name=atom.predicate_name,
+            terms=atom.terms,
+            negated=not atom.negated,
+        )
+
     @abstractmethod
     def get_asp_statements(self) -> List[Statement]:
         raise NotImplementedError()

@@ -6,6 +6,7 @@ from json_logic_asp.adapters.json_logic.jl_array_nodes import ArrayInNode
 from json_logic_asp.adapters.json_logic.jl_boolean_nodes import BooleanAndNode, BooleanNotNode, BooleanOrNode
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataMissingNode, DataVarNode
 from json_logic_asp.adapters.json_logic.jl_logic_nodes import (
+    LogicIfNode,
     LogicEqualNode,
     LogicGreaterOrEqualThanNode,
     LogicGreaterThanNode,
@@ -30,6 +31,7 @@ SUPPORTED_NODE_TYPES: Dict[JsonLogicOps, Type] = {
     JsonLogicOps.BOOLEAN_AND: BooleanAndNode,
     JsonLogicOps.BOOLEAN_OR: BooleanOrNode,
     JsonLogicOps.BOOLEAN_NOT: BooleanNotNode,
+    JsonLogicOps.LOGIC_IF: LogicIfNode,
     JsonLogicOps.LOGIC_EQ: LogicEqualNode,
     JsonLogicOps.LOGIC_STRICT_EQ: LogicStrictEqualNode,
     JsonLogicOps.LOGIC_NOT_EQ: LogicNotEqualNode,

@@ -1,12 +1,89 @@
 from abc import ABC
 from typing import Any, Dict, List, Union
 
-from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal
+from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal, PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
 from json_logic_asp.models.asp_base import Statement
-from json_logic_asp.models.json_logic_nodes import JsonLogicLeafNode
+from json_logic_asp.models.json_logic_nodes import JsonLogicLeafNode, JsonLogicInnerNode
 from json_logic_asp.utils.json_logic_helpers import value_encoder
+from json_logic_asp.utils.id_management import generate_unique_id
+
+
+class LogicIfNode(JsonLogicInnerNode):
+    def __init__(self, child_nodes: List[Any]):
+        super().__init__(operation_name="if")
+
+        for child_node in child_nodes:
+            self.add_child(child_node)
+
+    def get_asp_statements(self) -> List[Statement]:
+        # Evaluation happens in pairs: if(A, B, C, D, E, F, Z) gets translated to
+        #   else(nodeZ) :- not A, not C, not E, Z.
+        #   elif(node3) :- else(node4)
+        #   elif(node3) :- not A, not C, E, F
+        #   elif(node2) :- elif(node3)
+        #   elif(node2) :- not A, C, D
+        #   if(node1) :- elif(node2)
+        #   if(node1) :- A, B
+
+        total_nodes = len(self.child_nodes)
+        # Only generate elif's when there are more than 3 nodes
+        total_elifs = 0 if total_nodes < 4 else total_nodes // 2 - 1
+        # Only generate else when there are more than 1 node
+        has_else = total_nodes > 1 and total_nodes % 2 == 1
+
+        stmts: List[Statement] = []
+
+        negated_atoms: List[PredicateAtom] = []
+
+        begin_i, end_i = 0, min(total_nodes, 2)
+        # if(node1) :- A, B
+        stmts.append(RuleStatement(
+            atom=self.get_asp_atom(),
+            literals=[child.get_asp_atom() for child in self.child_nodes[begin_i:end_i]],
+        ))
+        negated_atoms.append(self.child_nodes[begin_i].get_negated_asp_atom())
+        prev_atom = self.get_asp_atom()
+
+        for elif_id in range(total_elifs):
+            new_atom = PredicateAtom(
+                predicate_name="elif",
+                terms=[generate_unique_id()]
+            )
+            # if(node1) :- elif(node2)
+            stmts.append(RuleStatement(
+                atom=prev_atom,
+                literals=[new_atom],
+            ))
+            begin_i += 2
+            end_i += 2
+            # elif(node2) :- not A, C, D
+            stmts.append(RuleStatement(
+                atom=new_atom,
+                literals=negated_atoms + [child.get_asp_atom() for child in self.child_nodes[begin_i:end_i]],
+            ))
+            negated_atoms.append(self.child_nodes[begin_i].get_negated_asp_atom())
+            prev_atom = new_atom
+
+        if has_else:
+            new_atom = PredicateAtom(
+                predicate_name="else",
+                terms=[generate_unique_id()]
+            )
+            stmts.append(RuleStatement(
+                atom=prev_atom,
+                literals=[new_atom],
+            ))
+            begin_i += 2
+            end_i += 1
+            # else(nodeZ) :- not A, not C, not E, Z.
+            stmts.append(RuleStatement(
+                atom=new_atom,
+                literals=negated_atoms + [child.get_asp_atom() for child in self.child_nodes[begin_i:end_i]],
+            ))
+
+        return list(reversed(stmts))
 
 
 class LogicEvalNode(JsonLogicLeafNode, ABC):
@@ -45,7 +122,6 @@ class LogicEvalNode(JsonLogicLeafNode, ABC):
 
         for i in range(total_comparisons):
             left, right = self.__child_nodes[i], self.__child_nodes[i + 1]
-            comment_part = ""
 
             if isinstance(left, DataVarNode):
                 if i == 0:
