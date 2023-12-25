@@ -3,14 +3,15 @@ from typing import Any, Dict, List, Union
 
 from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal, PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
+from json_logic_asp.adapters.json_logic.jl_array_nodes import ArrayMergeNode
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
 from json_logic_asp.models.asp_base import Statement
-from json_logic_asp.models.json_logic_nodes import JsonLogicInnerNode, JsonLogicLeafNode
+from json_logic_asp.models.json_logic_nodes import JsonLogicTreeNode, JsonLogicOperationNode
 from json_logic_asp.utils.id_management import generate_unique_id
 from json_logic_asp.utils.json_logic_helpers import value_encoder
 
 
-class LogicIfNode(JsonLogicInnerNode):
+class LogicIfNode(JsonLogicTreeNode):
     def __init__(self, child_nodes: List[Any]):
         super().__init__(operation_name="if")
 
@@ -90,7 +91,7 @@ class LogicIfNode(JsonLogicInnerNode):
         return list(reversed(stmts))
 
 
-class LogicEvalNode(JsonLogicLeafNode, ABC):
+class LogicEvalNode(JsonLogicOperationNode, ABC):
     def __init__(self, comparator: str, predicate: str, node_value: Any):
         super().__init__(operation_name=predicate)
 
@@ -123,6 +124,7 @@ class LogicEvalNode(JsonLogicLeafNode, ABC):
         for child_node in self.__child_nodes:
             if not isinstance(child_node, DataVarNode):
                 continue
+
             var_name = f"V{len(variable_names) + 1}"
             variable_names[child_node] = var_name
             literals.append(child_node.get_asp_atom_with_different_variable_name(var_name))

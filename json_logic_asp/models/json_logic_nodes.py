@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, List, Tuple, Type, Union, final
+from typing import Any, List, Tuple, Type, final
 
 from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.models.asp_base import Statement
@@ -72,12 +72,12 @@ class JsonLogicNode(ABC):
         raise NotImplementedError()
 
 
-class JsonLogicInnerNode(JsonLogicNode, ABC):
+class JsonLogicTreeNode(JsonLogicNode, ABC):
     def __init__(self, *args, **kwargs):
         super().__init__(
             accepted_child_node_types=(
-                JsonLogicInnerNode,
-                JsonLogicLeafNode,
+                JsonLogicTreeNode,
+                JsonLogicOperationNode,
             ),
             *args,
             **kwargs,
@@ -102,17 +102,9 @@ class JsonLogicInnerNode(JsonLogicNode, ABC):
         )
 
 
-class JsonLogicLeafNode(JsonLogicNode, ABC):
-    def __init__(self, allows_primitives: bool = False, allows_lists: bool = False, *args, **kwargs):
-        allowed_types: List[Type] = [JsonLogicLeafNode]
-        if allows_primitives:
-            allowed_types.extend([str, int, float, bool])
-        if allows_lists:
-            allowed_types.extend([List[Union[str, int, float, bool]]])
-
-        kwargs["accepted_child_node_types"] = tuple(allowed_types)
-
-        super().__init__(*args, **kwargs)
+class JsonLogicOperationNode(JsonLogicNode, ABC):
+    def __init__(self, *args, **kwargs):
+        super().__init__(accepted_child_node_types=(JsonLogicOperationNode,), *args, **kwargs)
 
     def get_asp_atom(self) -> PredicateAtom:
         return PredicateAtom(

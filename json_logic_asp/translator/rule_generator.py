@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Tuple, Type
 
 from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
-from json_logic_asp.adapters.json_logic.jl_array_nodes import ArrayInNode
+from json_logic_asp.adapters.json_logic.jl_array_nodes import ArrayInNode, ArrayMergeNode
 from json_logic_asp.adapters.json_logic.jl_boolean_nodes import BooleanAndNode, BooleanNotNode, BooleanOrNode
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataMissingNode, DataVarNode
 from json_logic_asp.adapters.json_logic.jl_logic_nodes import (
@@ -40,6 +40,7 @@ SUPPORTED_NODE_TYPES: Dict[JsonLogicOps, Type] = {
     JsonLogicOps.NUMERIC_GTE: LogicGreaterOrEqualThanNode,
     JsonLogicOps.NUMERIC_LT: LogicLowerThanNode,
     JsonLogicOps.NUMERIC_LTE: LogicLowerOrEqualThanNode,
+    JsonLogicOps.ARRAY_MERGE: ArrayMergeNode,
     JsonLogicOps.ARRAY_IN: ArrayInNode,
 }
 

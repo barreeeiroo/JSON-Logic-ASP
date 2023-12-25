@@ -4,11 +4,11 @@ from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
 from json_logic_asp.models.asp_base import Statement
-from json_logic_asp.models.json_logic_nodes import JsonLogicInnerNode
+from json_logic_asp.models.json_logic_nodes import JsonLogicTreeNode
 from json_logic_asp.utils.id_management import generate_constant_string
 
 
-class BooleanAndNode(JsonLogicInnerNode):
+class BooleanAndNode(JsonLogicTreeNode):
     def __init__(self, child_nodes: List[Any]):
         super().__init__(operation_name="and")
 
@@ -29,7 +29,7 @@ class BooleanAndNode(JsonLogicInnerNode):
         ]
 
 
-class BooleanOrNode(JsonLogicInnerNode):
+class BooleanOrNode(JsonLogicTreeNode):
     def __init__(self, child_nodes: List[Any]):
         super().__init__(operation_name="or")
 
@@ -49,7 +49,7 @@ class BooleanOrNode(JsonLogicInnerNode):
         return stmts
 
 
-class BooleanNotNode(JsonLogicInnerNode):
+class BooleanNotNode(JsonLogicTreeNode):
     def __init__(self, child_nodes: List[Any]):
         super().__init__(operation_name="neg")
 
