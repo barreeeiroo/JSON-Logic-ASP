@@ -3,10 +3,9 @@ from typing import Any, Dict, List, Union
 
 from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal, PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
-from json_logic_asp.adapters.json_logic.jl_array_nodes import ArrayMergeNode
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
 from json_logic_asp.models.asp_base import Statement
-from json_logic_asp.models.json_logic_nodes import JsonLogicTreeNode, JsonLogicOperationNode
+from json_logic_asp.models.json_logic_nodes import JsonLogicOperationNode, JsonLogicSingleDataNode, JsonLogicTreeNode
 from json_logic_asp.utils.id_management import generate_unique_id
 from json_logic_asp.utils.json_logic_helpers import value_encoder
 
@@ -104,13 +103,16 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
         if len(node_value) < 2:
             raise ValueError(f"LogicEvalNode expects at least 2 children, received {len(node_value)}")
 
-        self.__child_nodes: List[Union[DataVarNode, str, bool, float, int]] = []
+        self.__child_nodes: List[Union[JsonLogicSingleDataNode, str, bool, float, int]] = []
         for node in node_value:
             if isinstance(node, list) and len(node) == 1:
                 node = node[0]
 
-            if not isinstance(node, (DataVarNode, str, bool, float, int)):
+            if not isinstance(node, (JsonLogicSingleDataNode, str, bool, float, int)):
                 raise ValueError(f"LogicEvalNode received unexpected node type {type(node)}")
+
+            if isinstance(node, JsonLogicSingleDataNode) and not isinstance(node,DataVarNode):
+                self.add_child(node)
 
             self.__child_nodes.append(node)
 
@@ -120,9 +122,9 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
 
         total_comparisons = len(self.__child_nodes) - 1
 
-        variable_names: Dict[DataVarNode, str] = {}
+        variable_names: Dict[JsonLogicSingleDataNode, str] = {}
         for child_node in self.__child_nodes:
-            if not isinstance(child_node, DataVarNode):
+            if not isinstance(child_node, JsonLogicSingleDataNode):
                 continue
 
             var_name = f"V{len(variable_names) + 1}"
@@ -132,17 +134,17 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
         for i in range(total_comparisons):
             left, right = self.__child_nodes[i], self.__child_nodes[i + 1]
 
-            if isinstance(left, DataVarNode):
+            if isinstance(left, JsonLogicSingleDataNode):
                 if i == 0:
-                    comment_parts.append(left.var_name)
+                    comment_parts.append(left.var_name if isinstance(left, DataVarNode) else str(left))
                 left = variable_names[left]
             else:
                 if i == 0:
                     comment_parts.append(str(left))
                 left = value_encoder(left)
 
-            if isinstance(right, DataVarNode):
-                comment_parts.append(right.var_name)
+            if isinstance(right, JsonLogicSingleDataNode):
+                comment_parts.append(right.var_name if isinstance(right, DataVarNode) else str(right))
                 right = variable_names[right]
             else:
                 comment_parts.append(str(right))

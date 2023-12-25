@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple, Type
+from typing import Any, Dict, List, Tuple, Type, Union
 
 from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
@@ -23,9 +23,7 @@ from json_logic_asp.utils.id_management import generate_constant_string
 from json_logic_asp.utils.json_logic_helpers import extract_key_and_value_from_node
 from json_logic_asp.utils.list_utils import remove_duplicates
 
-RULE_NODE_CACHE: Dict[str, JsonLogicNode] = {}
-
-SUPPORTED_NODE_TYPES: Dict[JsonLogicOps, Type] = {
+SUPPORTED_NODE_TYPES: Dict[Union[JsonLogicOps, str], Type] = {
     JsonLogicOps.DATA_VAR: DataVarNode,
     JsonLogicOps.DATA_MISSING: DataMissingNode,
     JsonLogicOps.BOOLEAN_AND: BooleanAndNode,
@@ -45,7 +43,36 @@ SUPPORTED_NODE_TYPES: Dict[JsonLogicOps, Type] = {
 }
 
 
-def __parse_json_logic_node(node: Dict[str, Any]) -> JsonLogicNode:
+def __get_or_update_cache(node: JsonLogicNode, node_cache: Dict[str, JsonLogicNode]) -> JsonLogicNode:
+    node_hash = str(hash(node))
+
+    node = node_cache.get(node_hash, node)
+    node_cache[node_hash] = node
+
+    return node
+
+
+def __is_valid_json_logic_node(node_value: Any):
+    if not isinstance(node_value, dict):
+        return False
+
+    keys = list(node_value.keys())
+    if len(keys) != 1:
+        return False
+
+    key = keys[0]
+    if not isinstance(key, str):
+        return False
+
+    try:
+        JsonLogicOps(key)
+    except ValueError:
+        return key in SUPPORTED_NODE_TYPES
+
+    return True
+
+
+def __parse_json_logic_node(node: Dict[str, Any], rule_node_cache: Dict[str, JsonLogicNode]) -> JsonLogicNode:
     node_key, node_value = extract_key_and_value_from_node(node)
 
     if node_key not in SUPPORTED_NODE_TYPES:
@@ -55,25 +82,21 @@ def __parse_json_logic_node(node: Dict[str, Any]) -> JsonLogicNode:
         node_value = [node_value]
 
     if isinstance(node_value, list):
-        node_value = [__parse_json_logic_node(node) if isinstance(node, dict) else node for node in node_value]
+        node_value = [
+            __parse_json_logic_node(node, rule_node_cache) if __is_valid_json_logic_node(node) else node
+            for node in node_value
+        ]
 
     jl_node = SUPPORTED_NODE_TYPES[node_key](node_value)
 
-    h = str(hash(jl_node))
-    if h in RULE_NODE_CACHE:
-        jl_node = RULE_NODE_CACHE[h]
-    else:
-        RULE_NODE_CACHE[h] = jl_node
-
-    return jl_node
+    return __get_or_update_cache(jl_node, rule_node_cache)
 
 
 def generate_multiple_rule_asp_definition(
     rule_inputs: List[RuleInput],
     with_comments: bool = False,
 ) -> Tuple[str, Dict[str, str]]:
-    global RULE_NODE_CACHE
-    RULE_NODE_CACHE = dict()
+    rule_node_cache: Dict[str, JsonLogicNode] = dict()
 
     statements = []
     root_statements = []
@@ -81,7 +104,7 @@ def generate_multiple_rule_asp_definition(
     mapping = {}
 
     for rule_input in rule_inputs:
-        root_node = __parse_json_logic_node(node=rule_input.rule_tree)
+        root_node = __parse_json_logic_node(node=rule_input.rule_tree, rule_node_cache=rule_node_cache)
         statements.extend(root_node.to_asp(with_comment=with_comments))
         # statements = root_node.to_asp()
 

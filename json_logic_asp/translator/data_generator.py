@@ -1,14 +1,9 @@
-from typing import Dict
-
 from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import FactStatement
-from json_logic_asp.models.json_logic_nodes import JsonLogicNode
 from json_logic_asp.models.translator_dto import DataInput
 from json_logic_asp.utils.id_management import generate_constant_string
 from json_logic_asp.utils.json_logic_helpers import value_encoder
 from json_logic_asp.utils.list_utils import remove_duplicates
-
-DATA_NODE_CACHE: Dict[str, JsonLogicNode] = {}
 
 
 def __flatten_data(y):
@@ -32,9 +27,6 @@ def __flatten_data(y):
 
 
 def generate_single_data_asp_definition(data_input: DataInput, with_comments: bool = False) -> str:
-    global DATA_NODE_CACHE
-    DATA_NODE_CACHE = dict()
-
     statements = []
 
     flattened_obj = __flatten_data(data_input.data_object)

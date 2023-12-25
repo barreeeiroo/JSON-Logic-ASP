@@ -1,10 +1,10 @@
-from typing import Any, List, Union, Dict, Type, Optional, Tuple
+from typing import Any, Dict, List, Type, Union
 
 from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal, PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
 from json_logic_asp.models.asp_base import Statement
-from json_logic_asp.models.json_logic_nodes import JsonLogicOperationNode
+from json_logic_asp.models.json_logic_nodes import JsonLogicOperationNode, JsonLogicSingleDataNode
 from json_logic_asp.utils.json_logic_helpers import value_encoder
 
 
@@ -57,14 +57,16 @@ class ArrayMergeNode(JsonLogicOperationNode):
         )
 
     def get_asp_statements(self) -> List[Statement]:
-        stmts = []
+        stmts: List[Statement] = []
 
         for var_node in self.__child_nodes[DataVarNode]:
+            if not isinstance(var_node, DataVarNode):
+                continue
             stmts.append(
                 RuleStatement(
                     atom=self.get_asp_atom(),
                     literals=[var_node.get_asp_atom_with_different_variable_name(self.var_variable)],
-                    comment=f"Merge {var_node.var_name}"
+                    comment=f"Merge {var_node.var_name}",
                 )
             )
 
@@ -74,6 +76,8 @@ class ArrayMergeNode(JsonLogicOperationNode):
             if not list_values:
                 continue
 
+            values = [value_encoder(val) for val in list_values if not isinstance(val, DataVarNode)]
+
             stmts.append(
                 RuleStatement(
                     atom=self.get_asp_atom(),
@@ -81,7 +85,7 @@ class ArrayMergeNode(JsonLogicOperationNode):
                         ComparatorAtom(
                             left_value="M",
                             comparator="=",
-                            right_value=f"({';'.join([value_encoder(val) for val in list_values])})",
+                            right_value=f"({';'.join(values)})",
                         )
                     ],
                     comment=f"Merge ({', '.join([str(stmt) for stmt in list_values])})",
@@ -116,11 +120,11 @@ class ArrayInNode(JsonLogicOperationNode):
 
         left, right = node_value
 
-        if not isinstance(left, DataVarNode) and not isinstance(right, DataVarNode):
+        if not isinstance(left, JsonLogicSingleDataNode) and not isinstance(right, JsonLogicSingleDataNode):
             raise ValueError("ArrayInNode expects at least 1 DataVarNode, received 0")
 
-        self.data_nodes: List[DataVarNode] = []
-        self.list_node: Optional[Union[List, ArrayMergeNode]] = None
+        self.data_nodes: List[JsonLogicSingleDataNode] = []
+        self.list_node: Union[List, ArrayMergeNode]
 
         if isinstance(left, (list, ArrayMergeNode)):
             self.list_node = left
@@ -132,16 +136,21 @@ class ArrayInNode(JsonLogicOperationNode):
         else:
             self.data_nodes.append(right)
 
+        for node in self.data_nodes:
+            if isinstance(node, DataVarNode):
+                continue
+            self.add_child(node)
+
         if self.list_node and isinstance(self.list_node, list):
             for list_elem in self.list_node:
                 if not isinstance(
-                        list_elem,
-                        (
-                                str,
-                                bool,
-                                float,
-                                int,
-                        ),
+                    list_elem,
+                    (
+                        str,
+                        bool,
+                        float,
+                        int,
+                    ),
                 ):
                     raise ValueError(f"ArrayInNode expects at least 1 list primitive nodes, received {type(list_elem)}")
         elif self.list_node and isinstance(self.list_node, ArrayMergeNode):
@@ -150,13 +159,17 @@ class ArrayInNode(JsonLogicOperationNode):
     def get_asp_statements(self) -> List[Statement]:
         literals: List[Literal] = []
 
+        def get_comment_var_name(node: JsonLogicOperationNode):
+            return node.var_name if isinstance(node, DataVarNode) else str(node)
+
         if len(self.data_nodes) == 2:
             literals.extend([node.get_asp_atom_with_different_variable_name("I") for node in self.data_nodes])
-            comment = " IN ".join([node.var_name for node in self.data_nodes])
+            comment = " IN ".join([get_comment_var_name(node) for node in self.data_nodes])
 
         else:
             data_node = self.data_nodes[0]
             list_node = self.list_node
+            var_name = get_comment_var_name(data_node)
 
             literals.append(data_node.get_asp_atom_with_different_variable_name("I"))
             if isinstance(list_node, list):
@@ -168,10 +181,10 @@ class ArrayInNode(JsonLogicOperationNode):
                         right_value=f"({';'.join(right_val)})",
                     )
                 )
-                comment = f"{data_node.var_name} IN ({', '.join([str(stmt) for stmt in self.list_node])})"
+                comment = f"{var_name} IN ({', '.join([str(stmt) for stmt in list_node])})"
             else:
                 literals.append(list_node.get_asp_atom_with_different_variable_name("I"))
-                comment = f"{data_node.var_name} IN ({str(list_node)})"
+                comment = f"{var_name} IN ({str(list_node)})"
 
         return [
             RuleStatement(
@@ -186,7 +199,9 @@ class ArrayInNode(JsonLogicOperationNode):
 
     def __hash__(self):
         return hash(
-            ("in",
-             *tuple(sorted([hash(node) for node in self.data_nodes])),
-             *([hash(self.list_node)] if isinstance(self.list_node, ArrayMergeNode) else sorted(self.list_node))),
+            (
+                "in",
+                *tuple(sorted([hash(node) for node in self.data_nodes])),
+                *([hash(self.list_node)] if isinstance(self.list_node, ArrayMergeNode) else sorted(self.list_node)),
+            ),
         )

@@ -3,11 +3,11 @@ from typing import Any, List, Set
 from json_logic_asp.adapters.asp.asp_literals import Literal, PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.models.asp_base import Statement
-from json_logic_asp.models.json_logic_nodes import JsonLogicOperationNode
+from json_logic_asp.models.json_logic_nodes import JsonLogicOperationNode, JsonLogicSingleDataNode
 from json_logic_asp.utils.id_management import generate_constant_string
 
 
-class DataVarNode(JsonLogicOperationNode):
+class DataVarNode(JsonLogicSingleDataNode):
     def __init__(self, node_value: Any):
         super().__init__(operation_name="var")
 
@@ -21,16 +21,6 @@ class DataVarNode(JsonLogicOperationNode):
         return PredicateAtom(
             predicate_name="var",
             terms=[generate_constant_string(self.var_name), self.var_variable],
-        )
-
-    def get_asp_atom_with_different_variable_name(self, var_name: str) -> PredicateAtom:
-        atom = self.get_asp_atom()
-        return PredicateAtom(
-            predicate_name=atom.predicate_name,
-            terms=[
-                atom.terms[0],
-                var_name,
-            ],
         )
 
     def get_asp_statements(self) -> List[Statement]:

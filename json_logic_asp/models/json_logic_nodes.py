@@ -111,3 +111,19 @@ class JsonLogicOperationNode(JsonLogicNode, ABC):
             predicate_name=self.operation_name,
             terms=[self.node_id],
         )
+
+
+class JsonLogicSingleDataNode(JsonLogicOperationNode, ABC):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @final
+    def get_asp_atom_with_different_variable_name(self, var_name: str) -> PredicateAtom:
+        atom = self.get_asp_atom()
+        return PredicateAtom(
+            predicate_name=atom.predicate_name,
+            terms=[
+                atom.terms[0],
+                var_name,
+            ],
+        )
