@@ -73,12 +73,12 @@ def __is_valid_json_logic_node(node_value: Any, json_logic_node_keys: List[str])
 
 
 def __parse_json_logic_node(
-    node: Dict[str, Any], rule_node_cache: Dict[str, JsonLogicNode], custom_nodes: Dict[str, Type]
+        node: Dict[str, Any], rule_node_cache: Dict[str, JsonLogicNode], custom_nodes: Dict[str, Type]
 ) -> JsonLogicNode:
     node_key, node_value = extract_key_and_value_from_node(node)
 
-    supported_nodes: Dict[Union[JsonLogicOps, str], Type] = {  # type: ignore
-        **SUPPORTED_NODE_TYPES,
+    supported_nodes: Dict[Union[JsonLogicOps, str], Type] = {
+        **SUPPORTED_NODE_TYPES,  # type: ignore
         **custom_nodes,
     }
 
@@ -102,10 +102,18 @@ def __parse_json_logic_node(
 
 
 def generate_multiple_rule_asp_definition(
-    rule_inputs: List[RuleInput],
-    with_comments: bool = False,
-    custom_nodes: Optional[Dict[str, Type]] = None,
+        rule_inputs: List[RuleInput],
+        with_comments: bool = False,
+        custom_nodes: Optional[Dict[str, Type]] = None,
 ) -> Tuple[str, Dict[str, str]]:
+    """
+    Given multiple rule inputs, generate the corresponding ASP definition.
+
+    :param rule_inputs: list of rule input objects to translate
+    :param with_comments: whether to include ASP comments
+    :param custom_nodes: dictionary of node_key and corresponding class generating the node
+    :return: tuple of ASP definition and mapping dictionary (ASP rule to original rule id)
+    """
     rule_node_cache: Dict[str, JsonLogicNode] = dict()
 
     statements = []
@@ -139,7 +147,22 @@ def generate_multiple_rule_asp_definition(
     return "\n".join(statements), mapping
 
 
-def generate_single_rule_asp_definition(rule_input: RuleInput, *args, **kwargs) -> str:
-    kwargs["rule_inputs"] = [rule_input]
-    definition, _ = generate_multiple_rule_asp_definition(*args, **kwargs)
+def generate_single_rule_asp_definition(
+        rule_input: RuleInput,
+        with_comments: bool = False,
+        custom_nodes: Optional[Dict[str, Type]] = None,
+) -> str:
+    """
+    Given a single rule input, generate the corresponding ASP definition.
+
+    :param rule_input: rule input object to translate
+    :param with_comments: whether to include ASP comments
+    :param custom_nodes: dictionary of node_key and corresponding class generating the node
+    :return: ASP definition
+    """
+    definition, _ = generate_multiple_rule_asp_definition(
+        rule_inputs=[rule_input],
+        with_comments=with_comments,
+        custom_nodes=custom_nodes
+    )
     return definition

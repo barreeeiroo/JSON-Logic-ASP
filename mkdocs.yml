@@ -1,0 +1,70 @@
+site_name: JSON Logic ASP
+site_description: Evaluate JSON Logic in ASP
+site_author: Diego Barreiro Perez
+site_url: https://json-logic-asp.readthedocs.io/
+
+repo_url: https://github.com/barreeeiroo/JSON-Logic-ASP
+
+watch:
+  - json_logic_asp/
+
+theme:
+  name: "material"
+  features:
+    - content.tabs.link
+    # - navigation.instant
+    - navigation.indexes
+    - navigation.tabs
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: sphinx
+            show_root_toc_entry: false
+
+
+extra:
+  version:
+    provider: mike
+
+
+nav:
+  - Welcome:
+      - index.md
+      - getting-started.md
+      - changelog.md
+  - Evaluator:
+      - evaluator/index.md
+  - Simplifier:
+      - simplifier/index.md
+      - simplifier/simplify.md
+  - Translator:
+      - translator/index.md
+      - translator/data_generator.md
+      - translator/rule_generator.md
+      - translator/eval_translator.md
+  - Invoker:
+      - invoker/index.md
+      - invoker/run.md

@@ -27,6 +27,12 @@ def __store_clingo_temp_file(problem: str) -> Path:
 
 
 def get_matching_rules_from_asp_problem(problem: str, mapping: Optional[Dict[str, str]] = None) -> List[str]:
+    """
+    Given an ASP problem, return the matching rules.
+    :param problem: ASP problem with data, rules and show statement.
+    :param mapping: optional mapping for the ASP rule ids
+    :return: list of matching rules, mapped if provided
+    """
     file_path = __store_clingo_temp_file(problem)
     log.debug(f"Temp File Path: {file_path}")
 
@@ -48,8 +54,15 @@ def get_matching_rules_from_asp_problem(problem: str, mapping: Optional[Dict[str
 
 
 def get_matching_rules_for_asp_rules_and_data(
-    asp_data_definition: str, asp_rules_definition: str, *args, **kwargs
+        asp_data_definition: str, asp_rules_definition: str, mapping: Optional[Dict[str, str]] = None
 ) -> List[str]:
+    """
+    Given some data definition and rule definition, evaluate it with Clingo and return the matching rules.
+    :param asp_data_definition: encoded data in ASP language
+    :param asp_rules_definition: encoded rules in ASP language
+    :param mapping: optional mapping for the ASP rule ids
+    :return: list of matching rules, mapped if provided
+    """
     asp_definition_parts = [
         asp_data_definition,
         asp_rules_definition,
@@ -57,6 +70,4 @@ def get_matching_rules_for_asp_rules_and_data(
     ]
     asp_definition = "\n\n\n".join(asp_definition_parts)
 
-    kwargs["problem"] = asp_definition
-
-    return get_matching_rules_from_asp_problem(*args, **kwargs)
+    return get_matching_rules_from_asp_problem(problem=asp_definition, mapping=mapping)

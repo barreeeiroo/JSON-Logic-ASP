@@ -27,6 +27,13 @@ def __flatten_data(y):
 
 
 def generate_single_data_asp_definition(data_input: DataInput, with_comments: bool = False) -> str:
+    """
+    Given a data input, generate the corresponding ASP definition.
+
+    :param data_input: DataInput object with the containing data
+    :param with_comments: if true, generate the definition including ASP comments
+    :return: data encoded in ASP definition
+    """
     statements = []
 
     flattened_obj = __flatten_data(data_input.data_object)

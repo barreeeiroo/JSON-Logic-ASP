@@ -2,6 +2,9 @@
 name = "json-logic-asp"
 version = "0.2.0"
 description = ""
+homepage = "https://github.com/barreeeiroo/JSON-Logic-ASP/"
+repository = "https://github.com/barreeeiroo/JSON-Logic-ASP"
+documentation = "https://json-logic-asp.readthedocs.io/"
 authors = ["Diego Barreiro Perez <diego@barreiro.xyz>"]
 readme = "README.md"
 classifiers = [
@@ -35,6 +38,12 @@ mypy = "^1.7.1"
 bandit = { extras = ["toml"], version = "^1.7.6" }
 xenon = "^0.9.1"
 radon = "^6.0.1"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.5.3"
+mkdocs-material = "^9.5.3"
+mkdocstrings = {extras = ["python"], version = "^0.24.0"}
+
 
 [build-system]
 requires = ["poetry-core"]
