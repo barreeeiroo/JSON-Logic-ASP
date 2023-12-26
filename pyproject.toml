@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "json-logic-asp"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["Diego Barreiro Perez <diego@barreiro.xyz>"]
 readme = "README.md"
 classifiers = [
-    "Development Status :: 1 - Planning",
+    "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
