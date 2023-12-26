@@ -1,16 +1,16 @@
-from typing import List, Optional, Dict, Type
+from typing import Dict, List, Optional, Type
 
 from json_logic_asp.invoker.run import get_matching_rules_for_asp_rules_and_data
-from json_logic_asp.models.translator_dto import RuleInput, DataInput
+from json_logic_asp.models.translator_dto import DataInput, RuleInput
 from json_logic_asp.simplifier.simplify import simplify_json_logic
 from json_logic_asp.translator.data_generator import generate_single_data_asp_definition
 from json_logic_asp.translator.rule_generator import generate_multiple_rule_asp_definition
 
 
 def evaluate_pregenerated_json_logic_rules_against_single_data(
-        json_logic_rules_in_asp_definition: str,
-        json_logic_data: DataInput,
-        rule_id_mapping: Optional[Dict[str, str]] = None,
+    json_logic_rules_in_asp_definition: str,
+    json_logic_data: DataInput,
+    rule_id_mapping: Optional[Dict[str, str]] = None,
 ) -> List[str]:
     asp_data_definition = generate_single_data_asp_definition(
         data_input=json_logic_data,
@@ -27,10 +27,10 @@ def evaluate_pregenerated_json_logic_rules_against_single_data(
 
 
 def evaluate_multiple_json_logic_rules_against_single_data(
-        json_logic_rules: List[RuleInput],
-        json_logic_data: DataInput,
-        simplify: bool = False,
-        custom_nodes: Optional[Dict[str, Type]] = None,
+    json_logic_rules: List[RuleInput],
+    json_logic_data: DataInput,
+    simplify: bool = False,
+    custom_nodes: Optional[Dict[str, Type]] = None,
 ) -> List[str]:
     if simplify:
         for json_logic_rule in json_logic_rules:
@@ -49,4 +49,5 @@ def evaluate_multiple_json_logic_rules_against_single_data(
 
 
 def evaluate_single_json_logic_rule_against_single_data(json_logic_rule: RuleInput, *args, **kwargs):
-    return evaluate_multiple_json_logic_rules_against_single_data(json_logic_rules=[json_logic_rule], *args, **kwargs)
+    kwargs["json_logic_rules"] = [json_logic_rule]
+    return evaluate_multiple_json_logic_rules_against_single_data(*args, **kwargs)

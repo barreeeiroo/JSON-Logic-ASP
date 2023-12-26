@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
 from json_logic_asp.adapters.asp.asp_statements import ShowStatement
 from json_logic_asp.constants.loggers import INVOKER_LOGGER_NAME
@@ -48,9 +48,7 @@ def get_matching_rules_from_asp_problem(problem: str, mapping: Optional[Dict[str
 
 
 def get_matching_rules_for_asp_rules_and_data(
-        asp_data_definition: str,
-        asp_rules_definition: str,
-        *args, **kwargs
+    asp_data_definition: str, asp_rules_definition: str, *args, **kwargs
 ) -> List[str]:
     asp_definition_parts = [
         asp_data_definition,
@@ -59,4 +57,6 @@ def get_matching_rules_for_asp_rules_and_data(
     ]
     asp_definition = "\n\n\n".join(asp_definition_parts)
 
-    return get_matching_rules_from_asp_problem(problem=asp_definition, *args, **kwargs)
+    kwargs["problem"] = asp_definition
+
+    return get_matching_rules_from_asp_problem(*args, **kwargs)

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple, Type, Optional
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
@@ -73,13 +73,14 @@ def __is_valid_json_logic_node(node_value: Any, json_logic_node_keys: List[str])
 
 
 def __parse_json_logic_node(
-        node: Dict[str, Any],
-        rule_node_cache: Dict[str, JsonLogicNode],
-        custom_nodes: Dict[str, Type]
+    node: Dict[str, Any], rule_node_cache: Dict[str, JsonLogicNode], custom_nodes: Dict[str, Type]
 ) -> JsonLogicNode:
     node_key, node_value = extract_key_and_value_from_node(node)
 
-    supported_nodes = {**SUPPORTED_NODE_TYPES, **custom_nodes}
+    supported_nodes: Dict[Union[JsonLogicOps, str], Type] = {  # type: ignore
+        **SUPPORTED_NODE_TYPES,
+        **custom_nodes,
+    }
 
     if node_key not in supported_nodes:
         raise NotImplementedError(f"Node {node_key} is not yet implemented")
@@ -90,7 +91,8 @@ def __parse_json_logic_node(
     if isinstance(node_value, list):
         node_value = [
             __parse_json_logic_node(node, rule_node_cache, custom_nodes)
-            if __is_valid_json_logic_node(node, list(supported_nodes.keys())) else node
+            if __is_valid_json_logic_node(node, list(supported_nodes.keys()))
+            else node
             for node in node_value
         ]
 
@@ -100,9 +102,9 @@ def __parse_json_logic_node(
 
 
 def generate_multiple_rule_asp_definition(
-        rule_inputs: List[RuleInput],
-        with_comments: bool = False,
-        custom_nodes: Optional[Dict[str, Type]] = None,
+    rule_inputs: List[RuleInput],
+    with_comments: bool = False,
+    custom_nodes: Optional[Dict[str, Type]] = None,
 ) -> Tuple[str, Dict[str, str]]:
     rule_node_cache: Dict[str, JsonLogicNode] = dict()
 
@@ -138,5 +140,6 @@ def generate_multiple_rule_asp_definition(
 
 
 def generate_single_rule_asp_definition(rule_input: RuleInput, *args, **kwargs) -> str:
-    definition, _ = generate_multiple_rule_asp_definition(rule_inputs=[rule_input], *args, **kwargs)
+    kwargs["rule_inputs"] = [rule_input]
+    definition, _ = generate_multiple_rule_asp_definition(*args, **kwargs)
     return definition

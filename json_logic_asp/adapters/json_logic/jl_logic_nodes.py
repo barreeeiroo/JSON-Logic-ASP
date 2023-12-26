@@ -111,7 +111,7 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
             if not isinstance(node, (JsonLogicSingleDataNode, str, bool, float, int)):
                 raise ValueError(f"LogicEvalNode received unexpected node type {type(node)}")
 
-            if isinstance(node, JsonLogicSingleDataNode) and not isinstance(node,DataVarNode):
+            if isinstance(node, JsonLogicSingleDataNode) and not isinstance(node, DataVarNode):
                 self.add_child(node)
 
             self.__child_nodes.append(node)

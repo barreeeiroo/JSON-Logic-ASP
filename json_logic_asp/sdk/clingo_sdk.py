@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
 
 from clingo import Control
 
@@ -6,11 +6,11 @@ from clingo import Control
 def run_clingo(absolute_file_path: str) -> Tuple[str, List[str], Dict]:
     rules: List[str] = []
 
-    prg = Control(['--stats'])
+    prg = Control(["--stats"])
     prg.load(absolute_file_path)
     prg.ground([("base", [])])
 
-    with prg.solve(yield_=True) as hdl:
+    with prg.solve(yield_=True) as hdl:  # type: ignore
         for model in hdl:
             for symbol in model.symbols(terms=True, shown=True):
                 if symbol.name != "rule" and len(symbol.arguments) != 1:
