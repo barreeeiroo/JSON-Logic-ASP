@@ -2,6 +2,10 @@
 
 ## v0.X
 
+### v0.2.2
+
+- Fix documentation versioning
+
 ### v0.2.1
 
 - Include basic documentation

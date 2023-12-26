@@ -46,6 +46,7 @@ plugins:
 
 
 extra:
+  custom_dir: docs_overrides/
   version:
     provider: mike
 
