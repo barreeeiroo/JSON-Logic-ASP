@@ -2,6 +2,10 @@
 
 ## v0.X
 
+### v0.2.3
+
+- Dummy bump
+
 ### v0.2.2
 
 - Fix documentation versioning
