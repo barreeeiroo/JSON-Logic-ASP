@@ -11,6 +11,7 @@ lint: format
 
 test:
 	poetry run pytest -v
+#	poetry run pytest tests/test_demo.py -k 'test_get_usage' -v
 
 pr: lint mypy test security-baseline complexity-baseline
 

@@ -2,6 +2,10 @@
 
 ## v0.X
 
+### v0.2.1
+
+- Include basic documentation
+
 ### v0.2.0 (Pre-Alpha)
 
 - Initial Version
