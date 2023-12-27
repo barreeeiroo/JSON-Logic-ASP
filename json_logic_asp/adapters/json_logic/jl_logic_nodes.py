@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Union
 from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal, PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
+from json_logic_asp.constants.asp_naming import PredicateNames, VariableNames
 from json_logic_asp.models.asp_base import Statement
 from json_logic_asp.models.json_logic_nodes import JsonLogicOperationNode, JsonLogicSingleDataNode, JsonLogicTreeNode
 from json_logic_asp.utils.id_management import generate_unique_id
@@ -12,10 +13,10 @@ from json_logic_asp.utils.json_logic_helpers import value_encoder
 
 class LogicIfNode(JsonLogicTreeNode):
     def __init__(self, child_nodes: List[Any]):
-        super().__init__(operation_name="if")
+        super().__init__(operation_name=PredicateNames.LOGIC_IF)
 
         for child_node in child_nodes:
-            self.add_child(child_node)
+            self.register_child(child_node)
 
     def get_asp_statements(self) -> List[Statement]:
         # Evaluation happens in pairs: if(A, B, C, D, E, F, Z) gets translated to
@@ -49,7 +50,7 @@ class LogicIfNode(JsonLogicTreeNode):
         prev_atom = self.get_asp_atom()
 
         for elif_id in range(total_elifs):
-            new_atom = PredicateAtom(predicate_name="elif", terms=[generate_unique_id()])
+            new_atom = PredicateAtom(predicate_name=PredicateNames.LOGIC_IF_ELIF, terms=[generate_unique_id()])
             # if(node1) :- elif(node2)
             stmts.append(
                 RuleStatement(
@@ -70,7 +71,7 @@ class LogicIfNode(JsonLogicTreeNode):
             prev_atom = new_atom
 
         if has_else:
-            new_atom = PredicateAtom(predicate_name="else", terms=[generate_unique_id()])
+            new_atom = PredicateAtom(predicate_name=PredicateNames.LOGIC_IF_ELSE, terms=[generate_unique_id()])
             stmts.append(
                 RuleStatement(
                     atom=prev_atom,
@@ -114,7 +115,7 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
             self.__child_nodes.append(node)
 
             if isinstance(node, JsonLogicSingleDataNode) and not isinstance(node, DataVarNode):
-                self.add_child(node)
+                self.register_child(node)
 
     def get_asp_statements(self) -> List[Statement]:
         literals: List[Literal] = []
@@ -127,7 +128,7 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
             if not isinstance(child_node, JsonLogicSingleDataNode):
                 continue
 
-            var_name = f"V{len(variable_names) + 1}"
+            var_name = f"{VariableNames.VAR}{len(variable_names) + 1}"
             variable_names[child_node] = var_name
             literals.append(child_node.get_asp_atom_with_different_variable_name(var_name))
 
@@ -170,46 +171,46 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
         return f"{self.predicate.upper()}({self.node_id})"
 
     def __hash__(self):
-        return hash((self.predicate, *sorted(hash(child) for child in self.__child_nodes)))
+        return hash((self.predicate, sorted(hash(child) for child in self.__child_nodes)))
 
 
 class LogicEqualNode(LogicEvalNode):
     def __init__(self, node_value: Any):
         # TODO: This is wrong
-        super().__init__(comparator="==", predicate="eq", node_value=node_value)
+        super().__init__(comparator="==", predicate=PredicateNames.LOGIC_EQUALS, node_value=node_value)
 
 
 class LogicNotEqualNode(LogicEvalNode):
     def __init__(self, node_value: Any):
         # TODO: This is wrong
-        super().__init__(comparator="!=", predicate="neq", node_value=node_value)
+        super().__init__(comparator="!=", predicate=PredicateNames.LOGIC_NOTEQUALS, node_value=node_value)
 
 
 class LogicStrictEqualNode(LogicEvalNode):
     def __init__(self, node_value: Any):
-        super().__init__(comparator="==", predicate="seq", node_value=node_value)
+        super().__init__(comparator="==", predicate=PredicateNames.LOGIC_STRICTEQUALS, node_value=node_value)
 
 
 class LogicStrictNotEqualNode(LogicEvalNode):
     def __init__(self, node_value: Any):
-        super().__init__(comparator="!=", predicate="sneq", node_value=node_value)
+        super().__init__(comparator="!=", predicate=PredicateNames.LOGIC_STRICTNOTEQUALS, node_value=node_value)
 
 
 class LogicLowerThanNode(LogicEvalNode):
     def __init__(self, node_value: Any):
-        super().__init__(comparator="<", predicate="lt", node_value=node_value)
+        super().__init__(comparator="<", predicate=PredicateNames.LOGIC_LOWER, node_value=node_value)
 
 
 class LogicLowerOrEqualThanNode(LogicEvalNode):
     def __init__(self, node_value: Any):
-        super().__init__(comparator="<=", predicate="lte", node_value=node_value)
+        super().__init__(comparator="<=", predicate=PredicateNames.LOGIC_LOWEREQUAL, node_value=node_value)
 
 
 class LogicGreaterThanNode(LogicEvalNode):
     def __init__(self, node_value: Any):
-        super().__init__(comparator=">", predicate="gt", node_value=node_value)
+        super().__init__(comparator=">", predicate=PredicateNames.LOGIC_GREATER, node_value=node_value)
 
 
 class LogicGreaterOrEqualThanNode(LogicEvalNode):
     def __init__(self, node_value: Any):
-        super().__init__(comparator=">=", predicate="gte", node_value=node_value)
+        super().__init__(comparator=">=", predicate=PredicateNames.LOGIC_GREATEREQUAL, node_value=node_value)

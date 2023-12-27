@@ -17,7 +17,7 @@ class JsonLogicNode(ABC):
         self.child_nodes: List[Any] = []
 
     @final
-    def add_child(self, child_node: Any):
+    def register_child(self, child_node: Any):
         if child_node in self.child_nodes:
             return
 

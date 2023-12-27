@@ -3,16 +3,17 @@ from typing import Any, Dict, List, Optional
 from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
+from json_logic_asp.constants.asp_naming import PredicateNames, VariableNames
 from json_logic_asp.models.asp_base import Statement
 from json_logic_asp.models.json_logic_nodes import JsonLogicDataNode, JsonLogicTreeNode
 
 
 class BooleanAndNode(JsonLogicTreeNode):
     def __init__(self, child_nodes: List[Any]):
-        super().__init__(operation_name="and")
+        super().__init__(operation_name=PredicateNames.BOOLEAN_AND)
 
         for child_node in child_nodes:
-            self.add_child(child_node)
+            self.register_child(child_node)
 
     def get_asp_statements(self) -> List[Statement]:
         # For each child node, get the atom and use it as literal
@@ -30,10 +31,10 @@ class BooleanAndNode(JsonLogicTreeNode):
 
 class BooleanOrNode(JsonLogicTreeNode):
     def __init__(self, child_nodes: List[Any]):
-        super().__init__(operation_name="or")
+        super().__init__(operation_name=PredicateNames.BOOLEAN_OR)
 
         for child_node in child_nodes:
-            self.add_child(child_node)
+            self.register_child(child_node)
 
     def get_asp_statements(self) -> List[Statement]:
         stmts: List[Statement] = []
@@ -50,12 +51,12 @@ class BooleanOrNode(JsonLogicTreeNode):
 
 class BooleanNotNode(JsonLogicTreeNode):
     def __init__(self, child_nodes: List[Any]):
-        super().__init__(operation_name="neg")
+        super().__init__(operation_name=PredicateNames.BOOLEAN_NOT)
 
         if len(child_nodes) != 1:
             raise ValueError(f"BooleanNotNode expects only 1 child, received {len(child_nodes)}")
 
-        self.add_child(child_nodes[0])
+        self.register_child(child_nodes[0])
 
     def get_asp_statements(self) -> List[Statement]:
         # For each child node, get the atom and use it as literal
@@ -66,7 +67,7 @@ class BooleanNotNode(JsonLogicTreeNode):
                 # Handle specific case for negating "var" nodes as "not present"
                 var_name = child_node.var_name if isinstance(child_node, DataVarNode) else str(child_node)
                 child_statements[child_node.node_id] = child_node.get_asp_atom_with_different_variable_name(
-                    "_", negated=True
+                    VariableNames.ANY, negated=True
                 )
                 comment = f"Not {var_name}"
             else:
@@ -79,7 +80,7 @@ class BooleanNotNode(JsonLogicTreeNode):
 
         return [
             RuleStatement(
-                atom=PredicateAtom(predicate_name="neg", terms=[self.node_id]),
+                atom=PredicateAtom(predicate_name=PredicateNames.BOOLEAN_NOT, terms=[self.node_id]),
                 literals=list(child_statements.values()),
                 comment=comment,
             )

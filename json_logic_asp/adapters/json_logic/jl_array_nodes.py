@@ -3,6 +3,7 @@ from typing import Any, List, Union
 from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
+from json_logic_asp.constants.asp_naming import PredicateNames, VariableNames
 from json_logic_asp.models.asp_base import Statement
 from json_logic_asp.models.json_logic_nodes import (
     JsonLogicDataNode,
@@ -16,7 +17,7 @@ from json_logic_asp.utils.json_logic_helpers import value_encoder
 
 class ArrayMergeNode(JsonLogicMultiDataNode):
     def __init__(self, node_value: Any):
-        super().__init__(term_variable_name="M", operation_name="merge")
+        super().__init__(term_variable_name=VariableNames.MERGE, operation_name=PredicateNames.ARRAY_MERGE)
 
         if not isinstance(node_value, list):
             raise ValueError(f"ArrayMergeNode requires list as value, received {type(node_value)}")
@@ -35,7 +36,7 @@ class ArrayMergeNode(JsonLogicMultiDataNode):
         for child_node in self.__child_nodes:
             if not isinstance(child_node, JsonLogicNode) or isinstance(child_node, DataVarNode):
                 continue
-            self.add_child(child_node)
+            self.register_child(child_node)
 
     def get_asp_statements(self) -> List[Statement]:
         stmts: List[Statement] = []
@@ -59,7 +60,7 @@ class ArrayMergeNode(JsonLogicMultiDataNode):
                 atom=self.get_asp_atom(),
                 literals=[
                     ComparatorAtom(
-                        left_value="M",
+                        left_value=VariableNames.MERGE,
                         comparator="=",
                         right_value=f"({';'.join([value_encoder(val) for val in primitives])})",
                     )
@@ -75,13 +76,13 @@ class ArrayMergeNode(JsonLogicMultiDataNode):
 
     def __hash__(self):
         return hash(
-            ("merge", tuple(sorted([hash(val) for val in self.__child_nodes]))),
+            (PredicateNames.ARRAY_MERGE, tuple(sorted([hash(val) for val in self.__child_nodes]))),
         )
 
 
 class ArrayInNode(JsonLogicOperationNode):
     def __init__(self, node_value: Any):
-        super().__init__(operation_name="in")
+        super().__init__(operation_name=PredicateNames.ARRAY_IN)
 
         if not isinstance(node_value, list):
             raise ValueError(f"ArrayInNode expects a list as child, received {type(node_value)}")
@@ -123,7 +124,7 @@ class ArrayInNode(JsonLogicOperationNode):
         for node in node_value:
             if not isinstance(node, JsonLogicNode) or isinstance(node, DataVarNode):
                 continue
-            self.add_child(node)
+            self.register_child(node)
 
     def get_asp_statements(self) -> List[Statement]:
         literals: List[Literal] = []
@@ -132,7 +133,9 @@ class ArrayInNode(JsonLogicOperationNode):
             return node.var_name if isinstance(node, DataVarNode) else str(node)
 
         if len(self.data_nodes) == 2:
-            literals.extend([node.get_asp_atom_with_different_variable_name("I") for node in self.data_nodes])
+            literals.extend(
+                [node.get_asp_atom_with_different_variable_name(VariableNames.IN) for node in self.data_nodes]
+            )
             comment = " IN ".join([get_comment_var_name(node) for node in self.data_nodes])
 
         else:
@@ -140,19 +143,19 @@ class ArrayInNode(JsonLogicOperationNode):
             list_node = self.list_node
             var_name = get_comment_var_name(data_node)
 
-            literals.append(data_node.get_asp_atom_with_different_variable_name("I"))
+            literals.append(data_node.get_asp_atom_with_different_variable_name(VariableNames.IN))
             if isinstance(list_node, list):
                 right_val = [value_encoder(val) for val in list_node]
                 literals.append(
                     ComparatorAtom(
-                        left_value="I",
+                        left_value=VariableNames.IN,
                         comparator="=",
                         right_value=f"({';'.join(right_val)})",
                     )
                 )
                 comment = f"{var_name} IN ({', '.join([str(stmt) for stmt in list_node])})"
             else:
-                literals.append(list_node.get_asp_atom_with_different_variable_name("I"))
+                literals.append(list_node.get_asp_atom_with_different_variable_name(VariableNames.IN))
                 comment = f"{var_name} IN ({str(list_node)})"
 
         return [
@@ -169,9 +172,9 @@ class ArrayInNode(JsonLogicOperationNode):
     def __hash__(self):
         return hash(
             (
-                "in",
-                *tuple(sorted([hash(node) for node in self.data_nodes])),
-                *(
+                PredicateNames.ARRAY_IN,
+                tuple(sorted([hash(node) for node in self.data_nodes])),
+                tuple(
                     [hash(self.list_node)]
                     if isinstance(self.list_node, JsonLogicMultiDataNode)
                     else sorted(self.list_node)
