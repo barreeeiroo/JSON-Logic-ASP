@@ -30,6 +30,9 @@ pydantic = "^2.5.2"
 clingo = "5.5.2"
 
 
+[tool.poetry.group.dev]
+optional = true
+
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"
 pytest-cov = "^4.1.0"
@@ -38,6 +41,9 @@ mypy = "^1.7.1"
 bandit = { extras = ["toml"], version = "^1.7.6" }
 xenon = "^0.9.1"
 radon = "^6.0.1"
+
+[tool.poetry.group.docs]
+optional = true
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.5.3"
@@ -51,7 +57,7 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.pytest.ini_options]
-addopts = "--cov json_logic_asp/ --cov-report html --cov-report term"
+addopts = "--cov json_logic_asp/ --cov-report html --cov-report xml --cov-report term"
 testpaths = [
     "tests",
 ]

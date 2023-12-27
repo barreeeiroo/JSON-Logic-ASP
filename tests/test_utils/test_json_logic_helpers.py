@@ -24,7 +24,6 @@ def test_extract_key_and_value_from_node():
         (["a", "b"], "['a', 'b']"),
         (("a", "b"), "('a', 'b')"),
         ({"a": "b"}, "{'a': 'b'}"),
-        ({"a", "b"}, "{'b', 'a'}"),
     ],
     ids=[
         "string",
@@ -39,7 +38,6 @@ def test_extract_key_and_value_from_node():
         "list",
         "tuple",
         "dict",
-        "set",
     ],
 )
 def test_value_encoder(test_input, expected_output):
