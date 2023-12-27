@@ -54,7 +54,7 @@ def get_matching_rules_from_asp_problem(problem: str, mapping: Optional[Dict[str
 
 
 def get_matching_rules_for_asp_rules_and_data(
-        asp_data_definition: str, asp_rules_definition: str, mapping: Optional[Dict[str, str]] = None
+    asp_data_definition: str, asp_rules_definition: str, mapping: Optional[Dict[str, str]] = None
 ) -> List[str]:
     """
     Given some data definition and rule definition, evaluate it with Clingo and return the matching rules.

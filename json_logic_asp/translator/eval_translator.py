@@ -8,7 +8,7 @@ from json_logic_asp.utils.id_management import generate_constant_string
 
 
 def translate_multi_rule_eval(
-        rule_inputs: List[RuleInput], data_input: DataInput, with_comments: bool = False
+    rule_inputs: List[RuleInput], data_input: DataInput, with_comments: bool = False
 ) -> DataOutput:
     """
     Given some rule inputs and a data input, generate the corresponding ASP definition ready to be executed.

@@ -4,8 +4,7 @@ from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
 from json_logic_asp.models.asp_base import Statement
-from json_logic_asp.models.json_logic_nodes import JsonLogicTreeNode
-from json_logic_asp.utils.id_management import generate_constant_string
+from json_logic_asp.models.json_logic_nodes import JsonLogicDataNode, JsonLogicTreeNode
 
 
 class BooleanAndNode(JsonLogicTreeNode):
@@ -63,14 +62,13 @@ class BooleanNotNode(JsonLogicTreeNode):
         child_statements: Dict[str, PredicateAtom] = {}
         comment: Optional[str] = None
         for child_node in self.child_nodes:
-            if isinstance(child_node, DataVarNode):
+            if isinstance(child_node, JsonLogicDataNode):
                 # Handle specific case for negating "var" nodes as "not present"
-                child_statements[child_node.node_id] = PredicateAtom(
-                    predicate_name="var",
-                    terms=[generate_constant_string(child_node.var_name), "_"],
-                    negated=True,
+                var_name = child_node.var_name if isinstance(child_node, DataVarNode) else str(child_node)
+                child_statements[child_node.node_id] = child_node.get_asp_atom_with_different_variable_name(
+                    "_", negated=True
                 )
-                comment = f"Not {child_node.var_name}"
+                comment = f"Not {var_name}"
             else:
                 child_atom = child_node.get_asp_atom()
                 child_statements[child_node.node_id] = PredicateAtom(

@@ -1,96 +1,72 @@
-from typing import Any, Dict, List, Type, Union
+from typing import Any, List, Union
 
-from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal, PredicateAtom
+from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
 from json_logic_asp.models.asp_base import Statement
-from json_logic_asp.models.json_logic_nodes import JsonLogicOperationNode, JsonLogicSingleDataNode
+from json_logic_asp.models.json_logic_nodes import (
+    JsonLogicDataNode,
+    JsonLogicMultiDataNode,
+    JsonLogicNode,
+    JsonLogicOperationNode,
+    JsonLogicSingleDataNode,
+)
 from json_logic_asp.utils.json_logic_helpers import value_encoder
 
 
-class ArrayMergeNode(JsonLogicOperationNode):
+class ArrayMergeNode(JsonLogicMultiDataNode):
     def __init__(self, node_value: Any):
-        super().__init__(operation_name="merge")
+        super().__init__(term_variable_name="M", operation_name="merge")
 
         if not isinstance(node_value, list):
             raise ValueError(f"ArrayMergeNode requires list as value, received {type(node_value)}")
 
-        self.__child_nodes: Dict[Type, List[Union[DataVarNode, int, float, bool, str]]] = {
-            DataVarNode: [],
-            int: [],
-            float: [],
-            bool: [],
-            str: [],
-        }
+        self.__child_nodes: List[Union[JsonLogicDataNode, int, float, bool, str]] = []
 
-        actual_values: List[Union[DataVarNode, int, float, bool, str]] = []
+        for values in node_value:
+            if not isinstance(values, list):
+                values = [values]
 
-        for value in node_value:
-            if isinstance(value, list):
-                actual_values.extend(value)
-            else:
-                actual_values.append(value)
+            for value in values:
+                if not isinstance(value, (JsonLogicDataNode, int, float, bool, str)):
+                    raise ValueError(f"ArrayMergeNode received unexpected node type {type(value)}")
+                self.__child_nodes.append(value)
 
-        for value in actual_values:
-            t = type(value)
-            if t in self.__child_nodes:
-                self.__child_nodes[t].append(value)
-            else:
-                raise ValueError(f"ArrayMergeNode received unexpected node type {t}")
-
-        self.var_variable = "M"
-
-    def get_asp_atom(self) -> PredicateAtom:
-        return PredicateAtom(
-            predicate_name="merge",
-            terms=[self.node_id, self.var_variable],
-        )
-
-    def get_asp_atom_with_different_variable_name(self, var_name: str):
-        atom = self.get_asp_atom()
-        return PredicateAtom(
-            predicate_name=atom.predicate_name,
-            terms=[
-                atom.terms[0],
-                var_name,
-            ],
-        )
+        for child_node in self.__child_nodes:
+            if not isinstance(child_node, JsonLogicNode) or isinstance(child_node, DataVarNode):
+                continue
+            self.add_child(child_node)
 
     def get_asp_statements(self) -> List[Statement]:
         stmts: List[Statement] = []
 
-        for var_node in self.__child_nodes[DataVarNode]:
-            if not isinstance(var_node, DataVarNode):
-                continue
-            stmts.append(
-                RuleStatement(
-                    atom=self.get_asp_atom(),
-                    literals=[var_node.get_asp_atom_with_different_variable_name(self.var_variable)],
-                    comment=f"Merge {var_node.var_name}",
+        primitives = [v for v in self.__child_nodes if not isinstance(v, JsonLogicDataNode)]
+        var_nodes = [v for v in self.__child_nodes if isinstance(v, JsonLogicDataNode)]
+
+        for var_node in var_nodes:
+            if isinstance(var_node, JsonLogicDataNode):
+                var_name = var_node if isinstance(var_node, DataVarNode) else str(var_node)
+                stmts.append(
+                    RuleStatement(
+                        atom=self.get_asp_atom(),
+                        literals=[var_node.get_asp_atom_with_different_variable_name(self.term_variable_name)],
+                        comment=f"Merge {var_name}",
+                    )
                 )
+
+        stmts.append(
+            RuleStatement(
+                atom=self.get_asp_atom(),
+                literals=[
+                    ComparatorAtom(
+                        left_value="M",
+                        comparator="=",
+                        right_value=f"({';'.join([value_encoder(val) for val in primitives])})",
+                    )
+                ],
+                comment=f"Merge ({', '.join([str(stmt) for stmt in primitives])})",
             )
-
-        for list_type, list_values in self.__child_nodes.items():
-            if list_type == DataVarNode:
-                continue
-            if not list_values:
-                continue
-
-            values = [value_encoder(val) for val in list_values if not isinstance(val, DataVarNode)]
-
-            stmts.append(
-                RuleStatement(
-                    atom=self.get_asp_atom(),
-                    literals=[
-                        ComparatorAtom(
-                            left_value="M",
-                            comparator="=",
-                            right_value=f"({';'.join(values)})",
-                        )
-                    ],
-                    comment=f"Merge ({', '.join([str(stmt) for stmt in list_values])})",
-                )
-            )
+        )
 
         return stmts
 
@@ -98,13 +74,8 @@ class ArrayMergeNode(JsonLogicOperationNode):
         return f"MERGE({self.node_id})"
 
     def __hash__(self):
-        child_hashes = []
-        for val_list in self.__child_nodes.values():
-            for val in val_list:
-                child_hashes.append(hash(val))
-
         return hash(
-            ("merge", tuple(sorted(child_hashes))),
+            ("merge", tuple(sorted([hash(val) for val in self.__child_nodes]))),
         )
 
 
@@ -121,25 +92,20 @@ class ArrayInNode(JsonLogicOperationNode):
         left, right = node_value
 
         if not isinstance(left, JsonLogicSingleDataNode) and not isinstance(right, JsonLogicSingleDataNode):
-            raise ValueError("ArrayInNode expects at least 1 DataVarNode, received 0")
+            raise ValueError("ArrayInNode expects at least 1 JsonLogicSingleDataNode, received 0")
 
         self.data_nodes: List[JsonLogicSingleDataNode] = []
-        self.list_node: Union[List, ArrayMergeNode]
+        self.list_node: Union[List, JsonLogicMultiDataNode]
 
-        if isinstance(left, (list, ArrayMergeNode)):
+        if isinstance(left, (list, JsonLogicMultiDataNode)):
             self.list_node = left
         else:
             self.data_nodes.append(left)
 
-        if isinstance(right, (list, ArrayMergeNode)):
+        if isinstance(right, (list, JsonLogicMultiDataNode)):
             self.list_node = right
         else:
             self.data_nodes.append(right)
-
-        for node in self.data_nodes:
-            if isinstance(node, DataVarNode):
-                continue
-            self.add_child(node)
 
         if self.list_node and isinstance(self.list_node, list):
             for list_elem in self.list_node:
@@ -153,13 +119,16 @@ class ArrayInNode(JsonLogicOperationNode):
                     ),
                 ):
                     raise ValueError(f"ArrayInNode expects at least 1 list primitive nodes, received {type(list_elem)}")
-        elif self.list_node and isinstance(self.list_node, ArrayMergeNode):
-            self.add_child(self.list_node)
+
+        for node in node_value:
+            if not isinstance(node, JsonLogicNode) or isinstance(node, DataVarNode):
+                continue
+            self.add_child(node)
 
     def get_asp_statements(self) -> List[Statement]:
         literals: List[Literal] = []
 
-        def get_comment_var_name(node: JsonLogicOperationNode):
+        def get_comment_var_name(node: JsonLogicSingleDataNode):
             return node.var_name if isinstance(node, DataVarNode) else str(node)
 
         if len(self.data_nodes) == 2:
@@ -202,6 +171,10 @@ class ArrayInNode(JsonLogicOperationNode):
             (
                 "in",
                 *tuple(sorted([hash(node) for node in self.data_nodes])),
-                *([hash(self.list_node)] if isinstance(self.list_node, ArrayMergeNode) else sorted(self.list_node)),
+                *(
+                    [hash(self.list_node)]
+                    if isinstance(self.list_node, JsonLogicMultiDataNode)
+                    else sorted(self.list_node)
+                ),
             ),
         )

@@ -104,7 +104,7 @@ class JsonLogicTreeNode(JsonLogicNode, ABC):
 
 class JsonLogicOperationNode(JsonLogicNode, ABC):
     def __init__(self, *args, **kwargs):
-        super().__init__(accepted_child_node_types=(JsonLogicOperationNode,), *args, **kwargs)
+        super().__init__(accepted_child_node_types=(JsonLogicDataNode,), *args, **kwargs)
 
     def get_asp_atom(self) -> PredicateAtom:
         return PredicateAtom(
@@ -113,12 +113,19 @@ class JsonLogicOperationNode(JsonLogicNode, ABC):
         )
 
 
-class JsonLogicSingleDataNode(JsonLogicOperationNode, ABC):
-    def __init__(self, *args, **kwargs):
+class JsonLogicDataNode(JsonLogicOperationNode, ABC):
+    def __init__(self, term_variable_name: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.term_variable_name = term_variable_name
+
+    def get_asp_atom(self) -> PredicateAtom:
+        return PredicateAtom(
+            predicate_name=self.operation_name,
+            terms=[self.node_id, self.term_variable_name],
+        )
 
     @final
-    def get_asp_atom_with_different_variable_name(self, var_name: str) -> PredicateAtom:
+    def get_asp_atom_with_different_variable_name(self, var_name: str, negated: bool = False) -> PredicateAtom:
         atom = self.get_asp_atom()
         return PredicateAtom(
             predicate_name=atom.predicate_name,
@@ -126,4 +133,15 @@ class JsonLogicSingleDataNode(JsonLogicOperationNode, ABC):
                 atom.terms[0],
                 var_name,
             ],
+            negated=negated,
         )
+
+
+class JsonLogicSingleDataNode(JsonLogicDataNode, ABC):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class JsonLogicMultiDataNode(JsonLogicDataNode, ABC):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

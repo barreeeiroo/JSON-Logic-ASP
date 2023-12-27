@@ -111,10 +111,10 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
             if not isinstance(node, (JsonLogicSingleDataNode, str, bool, float, int)):
                 raise ValueError(f"LogicEvalNode received unexpected node type {type(node)}")
 
+            self.__child_nodes.append(node)
+
             if isinstance(node, JsonLogicSingleDataNode) and not isinstance(node, DataVarNode):
                 self.add_child(node)
-
-            self.__child_nodes.append(node)
 
     def get_asp_statements(self) -> List[Statement]:
         literals: List[Literal] = []
@@ -175,23 +175,23 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
 
 class LogicEqualNode(LogicEvalNode):
     def __init__(self, node_value: Any):
+        # TODO: This is wrong
         super().__init__(comparator="==", predicate="eq", node_value=node_value)
 
 
 class LogicNotEqualNode(LogicEvalNode):
     def __init__(self, node_value: Any):
+        # TODO: This is wrong
         super().__init__(comparator="!=", predicate="neq", node_value=node_value)
 
 
 class LogicStrictEqualNode(LogicEvalNode):
     def __init__(self, node_value: Any):
-        # TODO: This is wrong
         super().__init__(comparator="==", predicate="seq", node_value=node_value)
 
 
 class LogicStrictNotEqualNode(LogicEvalNode):
     def __init__(self, node_value: Any):
-        # TODO: This is wrong
         super().__init__(comparator="!=", predicate="sneq", node_value=node_value)
 
 

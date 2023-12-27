@@ -42,12 +42,12 @@ class DataMissingNode(JsonLogicOperationNode):
             node_value = [node_value]
 
         if not isinstance(node_value, list):
-            raise ValueError(f"DataVarNode requires list as value, received {type(node_value)}")
+            raise ValueError(f"DataMissingNode requires list as value, received {type(node_value)}")
 
         self.var_names: Set[str] = set()
         for var_name in node_value:
             if not isinstance(var_name, str):
-                raise ValueError(f"DataVarNode requires str as value, received {type(var_name)}")
+                raise ValueError(f"DataMissingNode requires str as value, received {type(var_name)}")
             self.var_names.add(var_name)
 
     def get_asp_statements(self) -> List[Statement]:
@@ -62,7 +62,7 @@ class DataMissingNode(JsonLogicOperationNode):
                     negated=True,
                 )
             )
-            comment += var_name
+            comment += f"{var_name} "
 
         return [
             RuleStatement(

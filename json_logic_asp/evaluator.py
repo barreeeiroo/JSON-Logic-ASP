@@ -8,9 +8,9 @@ from json_logic_asp.translator.rule_generator import generate_multiple_rule_asp_
 
 
 def evaluate_pregenerated_json_logic_rules_against_single_data(
-        json_logic_rules_in_asp_definition: str,
-        json_logic_data: DataInput,
-        rule_id_mapping: Optional[Dict[str, str]] = None,
+    json_logic_rules_in_asp_definition: str,
+    json_logic_data: DataInput,
+    rule_id_mapping: Optional[Dict[str, str]] = None,
 ) -> List[str]:
     """
     Given some rules in ASP definition and a data object, return the matching rules.
@@ -34,10 +34,10 @@ def evaluate_pregenerated_json_logic_rules_against_single_data(
 
 
 def evaluate_multiple_json_logic_rules_against_single_data(
-        json_logic_rules: List[RuleInput],
-        json_logic_data: DataInput,
-        simplify: bool = False,
-        custom_nodes: Optional[Dict[str, Type]] = None,
+    json_logic_rules: List[RuleInput],
+    json_logic_data: DataInput,
+    simplify: bool = False,
+    custom_nodes: Optional[Dict[str, Type]] = None,
 ) -> List[str]:
     """
     Given a multiple JSON Logic rules and data, evaluate it using Clingo.
@@ -50,10 +50,12 @@ def evaluate_multiple_json_logic_rules_against_single_data(
     if simplify:
         new_json_logic_rules: List[RuleInput] = []
         for json_logic_rule in json_logic_rules:
-            new_json_logic_rules.append(RuleInput(
-                rule_id=json_logic_rule.rule_id,
-                rule_tree=simplify_json_logic(json_logic_rule.rule_tree),
-            ))
+            new_json_logic_rules.append(
+                RuleInput(
+                    rule_id=json_logic_rule.rule_id,
+                    rule_tree=simplify_json_logic(json_logic_rule.rule_tree),
+                )
+            )
         json_logic_rules = new_json_logic_rules
 
     asp_rules_definition, rule_id_mapping = generate_multiple_rule_asp_definition(
@@ -69,10 +71,10 @@ def evaluate_multiple_json_logic_rules_against_single_data(
 
 
 def evaluate_single_json_logic_rule_against_single_data(
-        json_logic_rule: RuleInput,
-        json_logic_data: DataInput,
-        simplify: bool = False,
-        custom_nodes: Optional[Dict[str, Type]] = None,
+    json_logic_rule: RuleInput,
+    json_logic_data: DataInput,
+    simplify: bool = False,
+    custom_nodes: Optional[Dict[str, Type]] = None,
 ) -> bool:
     """
     Given a single JSON Logic rule and data, evaluate it using Clingo.
