@@ -71,6 +71,12 @@ class JsonLogicNode(ABC):
     def __hash__(self):
         raise NotImplementedError()
 
+    @final
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        return hash(self) == hash(other)
+
 
 class JsonLogicTreeNode(JsonLogicNode, ABC):
     def __init__(self, *args, **kwargs):

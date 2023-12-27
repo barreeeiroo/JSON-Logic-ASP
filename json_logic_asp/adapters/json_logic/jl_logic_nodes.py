@@ -171,7 +171,7 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
         return f"{self.predicate.upper()}({self.node_id})"
 
     def __hash__(self):
-        return hash((self.predicate, sorted(hash(child) for child in self.__child_nodes)))
+        return hash((self.predicate, tuple(sorted(hash(child) for child in self.__child_nodes))))
 
 
 class LogicEqualNode(LogicEvalNode):

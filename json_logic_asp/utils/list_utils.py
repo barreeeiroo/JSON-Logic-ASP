@@ -1,4 +1,4 @@
-from typing import Iterable, Set, Any
+from typing import Any, Iterable, Set
 
 
 def remove_duplicates(seq: Iterable[Any]):

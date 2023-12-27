@@ -1,4 +1,4 @@
-from json_logic_asp.utils.id_management import generate_unique_id, generate_constant_string
+from json_logic_asp.utils.id_management import generate_constant_string, generate_unique_id
 
 
 def test_generate_unique_id():
