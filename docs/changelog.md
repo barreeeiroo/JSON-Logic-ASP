@@ -2,6 +2,10 @@
 
 ## v0.X
 
+### v0.2.4
+
+- Dummy bump
+
 ### v0.2.3
 
 - Dummy bump
