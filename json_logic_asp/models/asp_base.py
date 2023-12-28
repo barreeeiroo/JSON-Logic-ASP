@@ -13,10 +13,10 @@ class Statement(ABC):
 
     @abstractmethod
     def to_asp_statement(self) -> str:
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
 
 class Atom(ABC):
     @abstractmethod
     def to_asp_atom(self):
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
