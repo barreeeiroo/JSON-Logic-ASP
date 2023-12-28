@@ -1,4 +1,4 @@
-from typing import Any, List, Set
+from typing import Any, List
 
 from json_logic_asp.adapters.asp.asp_literals import Literal, PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
@@ -49,11 +49,12 @@ class DataMissingNode(JsonLogicOperationNode):
         if not isinstance(node_value, list):
             raise ValueError(f"DataMissingNode requires list as value, received {type(node_value)}")
 
-        self.var_names: Set[str] = set()
+        self.var_names: List[str] = []
         for var_name in node_value:
             if not isinstance(var_name, str):
                 raise ValueError(f"DataMissingNode requires str as value, received {type(var_name)}")
-            self.var_names.add(var_name)
+            if var_name not in self.var_names:
+                self.var_names.append(var_name)
 
     def get_asp_statements(self) -> List[Statement]:
         literals: List[Literal] = []
@@ -63,7 +64,7 @@ class DataMissingNode(JsonLogicOperationNode):
             literals.append(
                 PredicateAtom(
                     predicate_name=PredicateNames.DATA_VAR,
-                    terms=[generate_constant_string(var_name), "_"],
+                    terms=[generate_constant_string(var_name), VariableNames.ANY],
                     negated=True,
                 )
             )

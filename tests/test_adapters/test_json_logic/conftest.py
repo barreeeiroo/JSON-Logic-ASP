@@ -12,7 +12,7 @@ class MockedCuidGenerator:
         return f"mock{self.counter}"
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(autouse=True)
 def cuid_fixture():
     with patch("json_logic_asp.utils.id_management.cuid_generator") as _fixture:
         _fixture.side_effect = MockedCuidGenerator()

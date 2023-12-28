@@ -13,7 +13,7 @@ mypy:
 	poetry run mypy --pretty json_logic_asp/ tests/
 
 test:
-	poetry run pytest -v
+	poetry run pytest
 
 security-baseline:
 	poetry run bandit -r json_logic_asp/
