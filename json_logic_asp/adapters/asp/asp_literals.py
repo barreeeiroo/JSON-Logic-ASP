@@ -1,6 +1,7 @@
 from abc import ABC
-from typing import List
+from typing import List, Union
 
+from json_logic_asp.constants.asp_naming import VariableNames
 from json_logic_asp.models.asp_base import Atom
 
 
@@ -9,9 +10,9 @@ class Literal(Atom, ABC):
 
 
 class PredicateAtom(Literal):
-    def __init__(self, predicate_name: str, terms: List[str], negated: bool = False):
+    def __init__(self, predicate_name: str, terms: List[Union[str, VariableNames]], negated: bool = False):
         self.predicate_name = predicate_name
-        self.terms = terms
+        self.terms: List[str] = [term if not isinstance(term, VariableNames) else term.value for term in terms]
         self.negated = negated
 
     def to_asp_atom(self):
@@ -27,10 +28,10 @@ class PredicateAtom(Literal):
 
 
 class ComparatorAtom(Literal):
-    def __init__(self, left_value: str, comparator: str, right_value: str):
-        self.left_value = left_value
+    def __init__(self, left_value: Union[str, VariableNames], comparator: str, right_value: Union[str, VariableNames]):
+        self.left_value = left_value if not isinstance(left_value, VariableNames) else left_value.value
         self.comparator = comparator
-        self.right_value = right_value
+        self.right_value = right_value if not isinstance(right_value, VariableNames) else right_value.value
 
     def to_asp_atom(self):
         return f"{self.left_value} {self.comparator} {self.right_value}"
