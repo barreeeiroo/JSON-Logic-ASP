@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import List, Union
 
-from json_logic_asp.constants.asp_naming import VariableNames
+from json_logic_asp.constants.asp_naming import PredicateNames, VariableNames
 from json_logic_asp.models.asp_base import Atom
 
 
@@ -10,8 +10,10 @@ class Literal(Atom, ABC):
 
 
 class PredicateAtom(Literal):
-    def __init__(self, predicate_name: str, terms: List[Union[str, VariableNames]], negated: bool = False):
-        self.predicate_name = predicate_name
+    def __init__(
+        self, predicate_name: Union[str, PredicateNames], terms: List[Union[str, VariableNames]], negated: bool = False
+    ):
+        self.predicate_name = predicate_name if not isinstance(predicate_name, PredicateNames) else predicate_name.value
         self.terms: List[str] = [term if not isinstance(term, VariableNames) else term.value for term in terms]
         self.negated = negated
 
