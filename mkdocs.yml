@@ -45,12 +45,6 @@ plugins:
             show_root_toc_entry: false
 
 
-extra:
-  custom_dir: docs_overrides/
-  version:
-    provider: mike
-
-
 nav:
   - Welcome:
       - index.md

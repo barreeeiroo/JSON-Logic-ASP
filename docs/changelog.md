@@ -2,6 +2,10 @@
 
 ## v0.X
 
+### v0.2.5
+
+- Some unit tests
+
 ### v0.2.4
 
 - Dummy bump
