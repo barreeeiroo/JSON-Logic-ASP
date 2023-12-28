@@ -11,4 +11,4 @@ def generate_unique_id() -> str:
 
 
 def generate_constant_string(s: str) -> str:
-    return f"s{hashlib.md5(s.encode()).hexdigest()}"  # nosec B303
+    return f"s{hashlib.md5(s.encode()).hexdigest()}"  # nosec B303 B324
