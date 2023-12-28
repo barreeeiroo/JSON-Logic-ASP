@@ -7,11 +7,6 @@ on:
 
 jobs:
   publish:
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -20,7 +15,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.8
 
       - name: Install Poetry
         run: pip install poetry==1.7
