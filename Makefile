@@ -9,6 +9,9 @@ format:
 lint: format
 	poetry run ruff check --fix json_logic_asp/ tests/
 
+lint-strict: format
+	poetry run ruff check json_logic_asp/ tests/
+
 mypy:
 	poetry run mypy --pretty json_logic_asp/ tests/
 
