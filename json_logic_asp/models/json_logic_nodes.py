@@ -22,13 +22,15 @@ class JsonLogicNode(ABC):
             return
 
         if not isinstance(child_node, self.__accepted_child_node_types):
-            raise ValueError(f"Found unexpected child_node type {type(child_node)} for {self.__class__.__name__}")
+            t = type(child_node).__name__
+            c = self.__class__.__name__
+            raise ValueError(f"Found unexpected child_node type {t} for {c}")
 
         self.child_nodes.append(child_node)
 
     @abstractmethod
     def get_asp_atom(self) -> PredicateAtom:
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     @final
     def get_negated_asp_atom(self) -> PredicateAtom:
@@ -41,7 +43,7 @@ class JsonLogicNode(ABC):
 
     @abstractmethod
     def get_asp_statements(self) -> List[Statement]:
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     @final
     def to_asp(self, with_comment: bool = False) -> List[str]:
@@ -65,11 +67,11 @@ class JsonLogicNode(ABC):
 
     @abstractmethod
     def __str__(self):
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     @abstractmethod
     def __hash__(self):
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     @final
     def __eq__(self, other):
@@ -110,7 +112,9 @@ class JsonLogicTreeNode(JsonLogicNode, ABC):
 
 class JsonLogicOperationNode(JsonLogicNode, ABC):
     def __init__(self, *args, **kwargs):
-        super().__init__(accepted_child_node_types=(JsonLogicDataNode,), *args, **kwargs)
+        if "accepted_child_node_types" not in kwargs:
+            kwargs["accepted_child_node_types"] = (JsonLogicDataNode,)
+        super().__init__(*args, **kwargs)
 
     def get_asp_atom(self) -> PredicateAtom:
         return PredicateAtom(
@@ -121,7 +125,7 @@ class JsonLogicOperationNode(JsonLogicNode, ABC):
 
 class JsonLogicDataNode(JsonLogicOperationNode, ABC):
     def __init__(self, term_variable_name: str, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(accepted_child_node_types=(), *args, **kwargs)
         self.term_variable_name = term_variable_name
 
     def get_asp_atom(self) -> PredicateAtom:
