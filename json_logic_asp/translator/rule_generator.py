@@ -114,7 +114,7 @@ def generate_multiple_rule_asp_definition(
     :param custom_nodes: dictionary of node_key and corresponding class generating the node
     :return: tuple of ASP definition and mapping dictionary (ASP rule to original rule id)
     """
-    rule_node_cache: Dict[str, JsonLogicNode] = dict()
+    rule_node_cache: Dict[str, JsonLogicNode] = {}
 
     statements = []
     root_statements = []
