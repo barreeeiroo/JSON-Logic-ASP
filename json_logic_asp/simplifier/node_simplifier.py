@@ -64,7 +64,7 @@ def simplify_negation_nodes(node_key: str, node_values: Any):
         if len(node_values) == 0:
             logger.debug(f"Found empty {node_key}, evaluating")
             # JL evaluates to False on empty arrays, so return True when not double negation
-            return True if not double_negation else False
+            return not double_negation
 
         logger.debug(f"Found array value at {node_key}, exploding")
         node_value = node_values[0]
