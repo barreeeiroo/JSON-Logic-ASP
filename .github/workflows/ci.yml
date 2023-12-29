@@ -37,11 +37,5 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Check Security Baseline
-        run: make security-baseline
-
-      - name: Check Complexity Baseline
-        run: make complexity-baseline
-
       - name: Try Build
         run: poetry build

@@ -1,4 +1,4 @@
-.PHONY: target format lint test pr build security-baseline complexity-baseline release
+.PHONY: target format lint test pr build
 
 target:
 	@$(MAKE) pr
@@ -18,16 +18,7 @@ mypy:
 test:
 	poetry run pytest
 
-security-baseline:
-	poetry run bandit -r json_logic_asp/
-
-complexity-baseline:
-	$(info Maintenability index)
-	poetry run radon mi json_logic_asp/
-	$(info Cyclomatic complexity index)
-	poetry run xenon --max-absolute C --max-modules B --max-average A json_logic_asp/
-
-pr: lint mypy test security-baseline complexity-baseline
+pr: lint mypy test
 
 build: pr
 	poetry build

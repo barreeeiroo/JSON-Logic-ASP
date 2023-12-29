@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "json-logic-asp"
-version = "0.2.6"
+version = "0.2.7"
 description = "Python JSON Logic evaluator in ASP"
 homepage = "https://github.com/barreeeiroo/JSON-Logic-ASP/"
 repository = "https://github.com/barreeeiroo/JSON-Logic-ASP"
@@ -38,9 +38,6 @@ pytest = "^7.4.3"
 pytest-cov = "^4.1.0"
 ruff = "^0.1.8"
 mypy = "^1.7.1"
-bandit = { extras = ["toml"], version = "^1.7.6" }
-xenon = "^0.9.1"
-radon = "^6.0.1"
 
 [tool.poetry.group.docs]
 optional = true

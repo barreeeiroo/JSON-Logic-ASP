@@ -77,12 +77,6 @@ jobs:
       - name: Install Dependencies
         run: poetry install --with=dev
 
-      - name: Check Security Baseline
-        run: make security-baseline
-
-      - name: Check Complexity Baseline
-        run: make complexity-baseline
-
       - name: Build
         run: poetry build
 

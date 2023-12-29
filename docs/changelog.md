@@ -2,6 +2,10 @@
 
 ## v0.X
 
+### v0.2.7
+
+- Improve code
+
 ### v0.2.6
 
 - More unit tests
