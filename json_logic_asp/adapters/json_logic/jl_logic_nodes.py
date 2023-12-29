@@ -49,7 +49,7 @@ class LogicIfNode(JsonLogicTreeNode):
         negated_atoms.append(self.child_nodes[begin_i].get_negated_asp_atom())
         prev_atom = self.get_asp_atom()
 
-        for elif_id in range(total_elifs):
+        for _ in range(total_elifs):
             new_atom = PredicateAtom(predicate_name=PredicateNames.LOGIC_IF_ELIF, terms=[generate_unique_id()])
             # if(node1) :- elif(node2)
             stmts.append(

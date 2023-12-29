@@ -32,14 +32,14 @@ def simplify_and_or_nodes(node_key: str, node_values: Any):
             if simplified_node_value is False:
                 # If value is False then the AND condition can never be satisfied
                 return False
-            elif simplified_node_value is True:
+            if simplified_node_value is True:
                 # Or if value is True, then skip it as it's redundant
                 continue
         elif node_key == JsonLogicOps.BOOLEAN_OR:
             if simplified_node_value is False:
                 # If value is False, skip it as it doesn't change the evaluation
                 continue
-            elif simplified_node_value is True:
+            if simplified_node_value is True:
                 # Or if the value is True, the OR condition will always be true
                 return True
 

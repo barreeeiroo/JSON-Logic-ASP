@@ -67,6 +67,7 @@ def evaluate_multiple_json_logic_rules_against_single_data(
     return evaluate_pregenerated_json_logic_rules_against_single_data(
         json_logic_rules_in_asp_definition=asp_rules_definition,
         json_logic_data=json_logic_data,
+        rule_id_mapping=rule_id_mapping,
     )
 
 

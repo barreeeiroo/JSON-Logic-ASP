@@ -30,7 +30,7 @@ def translate_multi_rule_eval(
 
     return RuleOutput(
         statements=stmts,
-        rule_mapping={generate_constant_string(rule_input.rule_id): rule_input.rule_id for rule_input in rule_inputs},
+        rule_mapping=rule_mapping,
     )
 
 
