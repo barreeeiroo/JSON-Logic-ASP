@@ -21,10 +21,7 @@ def test_clingo_output_with_mapping():
 
 
 def test_clingo_output_with_matching_rules():
-    output = ClingoOutput(
-        success=True,
-        matching_rules=["a", "b"]
-    )
+    output = ClingoOutput(success=True, matching_rules=["a", "b"])
     assert output.success is True
     assert output.has_mapping is False
     assert output.matching_rules == ["a", "b"]

@@ -125,7 +125,9 @@ class JsonLogicOperationNode(JsonLogicNode, ABC):
 
 class JsonLogicDataNode(JsonLogicOperationNode, ABC):
     def __init__(self, term_variable_name: str, *args, **kwargs):
-        super().__init__(accepted_child_node_types=(), *args, **kwargs)
+        if "accepted_child_node_types" not in kwargs:
+            kwargs["accepted_child_node_types"] = ()
+        super().__init__(*args, **kwargs)
         self.term_variable_name = term_variable_name
 
     def get_asp_atom(self) -> PredicateAtom:

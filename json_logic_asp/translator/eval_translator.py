@@ -1,7 +1,7 @@
 from typing import List
 
 from json_logic_asp.adapters.asp.asp_statements import ShowStatement
-from json_logic_asp.models.translator_dto import DataInput, RuleOutput, RuleInput
+from json_logic_asp.models.translator_dto import DataInput, RuleInput, RuleOutput
 from json_logic_asp.translator.data_generator import generate_single_data_asp_definition
 from json_logic_asp.translator.rule_generator import generate_multiple_rule_asp_definition
 from json_logic_asp.utils.id_management import generate_constant_string
