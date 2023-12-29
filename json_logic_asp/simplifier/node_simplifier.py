@@ -75,7 +75,7 @@ def simplify_negation_nodes(node_key: str, node_values: Any):
         single_neg_evaluation = not bool(value)
         return_eval = single_neg_evaluation if not double_negation else not single_neg_evaluation
 
-        if isinstance(value, int) or isinstance(value, float) or isinstance(value, str) or isinstance(value, bool):
+        if isinstance(value, (int, float, str, bool)):
             logger.debug(f"Evaluating {node_key} as primitive, resolving")
             return return_eval
 
