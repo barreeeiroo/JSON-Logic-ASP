@@ -38,9 +38,6 @@ pytest = "^7.4.3"
 pytest-cov = "^4.1.0"
 ruff = "^0.1.8"
 mypy = "^1.7.1"
-bandit = { extras = ["toml"], version = "^1.7.6" }
-xenon = "^0.9.1"
-radon = "^6.0.1"
 
 [tool.poetry.group.docs]
 optional = true
