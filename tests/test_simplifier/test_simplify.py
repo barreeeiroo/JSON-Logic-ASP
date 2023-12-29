@@ -13,8 +13,7 @@ def test_simplify_json_logic():
 
 
 def test_simplify_json_logic_invalid():
-    with patch("json_logic_asp.simplifier.simplify.simplify_node") as mock_simplify_node:
-        with pytest.raises(ValueError):
-            simplify_json_logic(True)
+    with patch("json_logic_asp.simplifier.simplify.simplify_node") as mock_simplify_node, pytest.raises(ValueError):
+        simplify_json_logic(True)
 
     mock_simplify_node.assert_not_called()
