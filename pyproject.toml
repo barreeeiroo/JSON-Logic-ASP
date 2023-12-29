@@ -21,11 +21,11 @@ classifiers = [
 packages = [
     { include = "json_logic_asp" },
 ]
+license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8.1"
+python = "^3.8"
 cuid2 = "^2.0.0"
-pydantic = "^2.5.2"
 # Newer version added extra safeguards which slowdown Gringo grounding, need further investigation...
 clingo = "5.5.2"
 

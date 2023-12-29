@@ -17,7 +17,11 @@ from json_logic_asp.utils.json_logic_helpers import value_encoder
 
 class ArrayMergeNode(JsonLogicMultiDataNode):
     def __init__(self, node_value: Any):
-        super().__init__(term_variable_name=VariableNames.MERGE, operation_name=PredicateNames.ARRAY_MERGE)
+        super().__init__(
+            accepted_child_node_types=(JsonLogicDataNode,),
+            term_variable_name=VariableNames.MERGE,
+            operation_name=PredicateNames.ARRAY_MERGE,
+        )
 
         if not isinstance(node_value, list):
             raise ValueError(f"ArrayMergeNode requires list as value, received {type(node_value)}")
@@ -31,7 +35,8 @@ class ArrayMergeNode(JsonLogicMultiDataNode):
             for value in values:
                 if not isinstance(value, (JsonLogicDataNode, int, float, bool, str)):
                     raise ValueError(f"ArrayMergeNode received unexpected node type {type(value)}")
-                self.__child_nodes.append(value)
+                if value not in self.__child_nodes:
+                    self.__child_nodes.append(value)
 
         for child_node in self.__child_nodes:
             if not isinstance(child_node, JsonLogicNode) or isinstance(child_node, DataVarNode):
