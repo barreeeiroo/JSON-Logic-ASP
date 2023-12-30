@@ -90,7 +90,7 @@ class ArrayInNode(JsonLogicOperationNode):
         super().__init__(operation_name=PredicateNames.ARRAY_IN)
 
         if not isinstance(node_value, list):
-            raise ValueError(f"ArrayInNode expects a list as child, received {type(node_value)}")
+            raise ValueError(f"ArrayInNode expects a list as child, received {type(node_value).__name__}")
 
         if len(node_value) != 2:
             raise ValueError(f"ArrayInNode expects 2 children, received {len(node_value)}")
@@ -98,20 +98,23 @@ class ArrayInNode(JsonLogicOperationNode):
         left, right = node_value
 
         if not isinstance(left, JsonLogicSingleDataNode) and not isinstance(right, JsonLogicSingleDataNode):
-            raise ValueError("ArrayInNode expects at least 1 JsonLogicSingleDataNode, received 0")
+            raise ValueError("ArrayInNode expects at least 1 JsonLogicSingleDataNode")
+        list_types = (list, JsonLogicMultiDataNode)
+        if not isinstance(left, list_types) and not isinstance(right, list_types):
+            raise ValueError("ArrayInNode expects at least 1 JsonLogicMultiDataNode or list")
 
-        self.data_nodes: List[JsonLogicSingleDataNode] = []
+        self.data_node: Union[JsonLogicSingleDataNode]
         self.list_node: Union[List, JsonLogicMultiDataNode]
 
         if isinstance(left, (list, JsonLogicMultiDataNode)):
             self.list_node = left
         else:
-            self.data_nodes.append(left)
+            self.data_node = left
 
         if isinstance(right, (list, JsonLogicMultiDataNode)):
             self.list_node = right
         else:
-            self.data_nodes.append(right)
+            self.data_node = right
 
         if self.list_node and isinstance(self.list_node, list):
             for list_elem in self.list_node:
@@ -124,7 +127,8 @@ class ArrayInNode(JsonLogicOperationNode):
                         int,
                     ),
                 ):
-                    raise ValueError(f"ArrayInNode expects at least 1 list primitive nodes, received {type(list_elem)}")
+                    t = type(list_elem).__name__
+                    raise ValueError(f"ArrayInNode expects at least 1 list primitive nodes, received {t}")
 
         for node in node_value:
             if not isinstance(node, JsonLogicNode) or isinstance(node, DataVarNode):
@@ -137,31 +141,24 @@ class ArrayInNode(JsonLogicOperationNode):
         def get_comment_var_name(node: JsonLogicSingleDataNode):
             return node.var_name if isinstance(node, DataVarNode) else str(node)
 
-        if len(self.data_nodes) == 2:
-            literals.extend(
-                [node.get_asp_atom_with_different_variable_name(VariableNames.IN) for node in self.data_nodes]
-            )
-            comment = " IN ".join([get_comment_var_name(node) for node in self.data_nodes])
+        data_node = self.data_node
+        list_node = self.list_node
+        var_name = get_comment_var_name(data_node)
 
-        else:
-            data_node = self.data_nodes[0]
-            list_node = self.list_node
-            var_name = get_comment_var_name(data_node)
-
-            literals.append(data_node.get_asp_atom_with_different_variable_name(VariableNames.IN))
-            if isinstance(list_node, list):
-                right_val = [value_encoder(val) for val in list_node]
-                literals.append(
-                    ComparatorAtom(
-                        left_value=VariableNames.IN,
-                        comparator="=",
-                        right_value=f"({';'.join(right_val)})",
-                    )
+        literals.append(data_node.get_asp_atom_with_different_variable_name(VariableNames.IN))
+        if isinstance(list_node, list):
+            right_val = [value_encoder(val) for val in list_node]
+            literals.append(
+                ComparatorAtom(
+                    left_value=VariableNames.IN,
+                    comparator="=",
+                    right_value=f"({';'.join(right_val)})",
                 )
-                comment = f"{var_name} IN ({', '.join([str(stmt) for stmt in list_node])})"
-            else:
-                literals.append(list_node.get_asp_atom_with_different_variable_name(VariableNames.IN))
-                comment = f"{var_name} IN ({str(list_node)})"
+            )
+            comment = f"{var_name} IN ({', '.join([str(stmt) for stmt in list_node])})"
+        else:
+            literals.append(list_node.get_asp_atom_with_different_variable_name(VariableNames.IN))
+            comment = f"{var_name} IN ({str(list_node)})"
 
         return [
             RuleStatement(
@@ -178,11 +175,9 @@ class ArrayInNode(JsonLogicOperationNode):
         return hash(
             (
                 PredicateNames.ARRAY_IN,
-                tuple(sorted([hash(node) for node in self.data_nodes])),
-                tuple(
-                    [hash(self.list_node)]
-                    if isinstance(self.list_node, JsonLogicMultiDataNode)
-                    else sorted(self.list_node)
-                ),
+                hash(self.data_node),
+                hash(self.list_node)
+                if isinstance(self.list_node, JsonLogicMultiDataNode)
+                else hash(tuple(sorted(self.list_node))),
             ),
         )
