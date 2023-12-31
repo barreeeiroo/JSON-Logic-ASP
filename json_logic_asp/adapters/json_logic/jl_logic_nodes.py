@@ -12,8 +12,18 @@ from json_logic_asp.utils.json_logic_helpers import value_encoder
 
 
 class LogicIfNode(JsonLogicTreeNode):
-    def __init__(self, child_nodes: List[Any]):
-        super().__init__(operation_name=PredicateNames.LOGIC_IF)
+    def __init__(self, child_nodes: Any):
+        super().__init__(
+            operation_name=PredicateNames.LOGIC_IF,
+            # TODO: Add support for booleans
+            accepted_child_node_types=(JsonLogicTreeNode, JsonLogicOperationNode),
+        )
+
+        if not isinstance(child_nodes, list):
+            raise ValueError(f"LogicIfNode expects a list as child, received {type(child_nodes).__name__}")
+
+        if len(child_nodes) < 1:
+            raise ValueError(f"LogicIfNode at least 1 child, received {len(child_nodes)}")
 
         for child_node in child_nodes:
             self.register_child(child_node)
@@ -89,6 +99,14 @@ class LogicIfNode(JsonLogicTreeNode):
             )
 
         return list(reversed(stmts))
+
+    def __hash__(self):
+        return hash(
+            (
+                self.operation_name,
+                self._get_children_hash(sort=False),
+            )
+        )
 
 
 class LogicEvalNode(JsonLogicOperationNode, ABC):

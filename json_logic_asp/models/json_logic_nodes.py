@@ -61,9 +61,10 @@ class JsonLogicNode(ABC):
 
         return stmts
 
-    def _get_children_hash(self):
+    def _get_children_hash(self, sort: bool = True):
         child_hashes = [hash(child) for child in self.child_nodes]
-        return hash(tuple(sorted(child_hashes)))
+        child_hashes = sorted(child_hashes) if sort else child_hashes
+        return hash(tuple(child_hashes))
 
     @abstractmethod
     def __str__(self):
@@ -82,14 +83,9 @@ class JsonLogicNode(ABC):
 
 class JsonLogicTreeNode(JsonLogicNode, ABC):
     def __init__(self, *args, **kwargs):
-        super().__init__(
-            accepted_child_node_types=(
-                JsonLogicTreeNode,
-                JsonLogicOperationNode,
-            ),
-            *args,
-            **kwargs,
-        )
+        if "accepted_child_node_types" not in kwargs:
+            kwargs["accepted_child_node_types"] = (JsonLogicTreeNode, JsonLogicOperationNode)
+        super().__init__(*args, **kwargs)
 
     @final
     def get_asp_atom(self) -> PredicateAtom:
