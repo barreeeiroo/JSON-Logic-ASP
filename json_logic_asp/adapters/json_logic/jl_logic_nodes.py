@@ -117,7 +117,7 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
         self.predicate = predicate
 
         if not isinstance(node_value, list):
-            raise ValueError(f"LogicEvalNode expects a list as child, received {type(node_value)}")
+            raise ValueError(f"LogicEvalNode expects a list as child, received {type(node_value).__name__}")
 
         if len(node_value) < 2:
             raise ValueError(f"LogicEvalNode expects at least 2 children, received {len(node_value)}")
@@ -129,6 +129,9 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
 
             if not isinstance(node, (JsonLogicSingleDataNode, str, bool, float, int)):
                 raise ValueError(f"LogicEvalNode received unexpected node type {type(node)}")
+
+            if node in self.__child_nodes:
+                continue
 
             self.__child_nodes.append(node)
 
@@ -146,7 +149,7 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
             if not isinstance(child_node, JsonLogicSingleDataNode):
                 continue
 
-            var_name = f"{VariableNames.VAR}{len(variable_names) + 1}"
+            var_name = f"{VariableNames.VAR.value}{len(variable_names) + 1}"
             variable_names[child_node] = var_name
             literals.append(child_node.get_asp_atom_with_different_variable_name(var_name))
 

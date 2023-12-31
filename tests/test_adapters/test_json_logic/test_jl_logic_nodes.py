@@ -1,5 +1,10 @@
+from typing import Any, List
+
 import pytest
 
+from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom
+from json_logic_asp.adapters.asp.asp_statements import RuleStatement
+from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
 from json_logic_asp.adapters.json_logic.jl_logic_nodes import (
     LogicEqualNode,
     LogicEvalNode,
@@ -12,6 +17,8 @@ from json_logic_asp.adapters.json_logic.jl_logic_nodes import (
     LogicStrictEqualNode,
     LogicStrictNotEqualNode,
 )
+from json_logic_asp.models.asp_base import Statement
+from json_logic_asp.models.json_logic_nodes import JsonLogicSingleDataNode
 
 
 class TestLogicIfNode:
@@ -210,6 +217,150 @@ class TestLogicIfNode:
         nested_hash = hash(("if", node._get_children_hash(sort=False)))
         assert hash(node) == nested_hash == hash(node3) != hash(node2)
         assert node == node3 != node2
+
+
+class DummyLogicEvalNode(LogicEvalNode):
+    def __init__(self, node_value: Any):
+        super().__init__(comparator="~~", predicate="dummy", node_value=node_value)
+
+
+class DummySingleDataNode(JsonLogicSingleDataNode):
+    def __init__(self):
+        super().__init__(term_variable_name="T", operation_name="test")
+
+    def get_asp_statements(self) -> List[Statement]:
+        return [RuleStatement(
+            atom=self.get_asp_atom(),
+            literals=[ComparatorAtom(
+                left_value=self.term_variable_name,
+                comparator="=",
+                right_value=self.node_id,
+            )],
+            comment=f"TEST {self.node_id}",
+        )]
+
+    def __str__(self):
+        return f"TEST({self.node_id})"
+
+    def __hash__(self):
+        return hash((self.operation_name, self.node_id,))
+
+
+class TestLogicEvalNode:
+    def test_invalid_values(self):
+        with pytest.raises(ValueError) as exc1:
+            DummyLogicEvalNode("a")
+        assert exc1.match("LogicEvalNode expects a list as child")
+
+        with pytest.raises(ValueError) as exc2:
+            DummyLogicEvalNode(["a"])
+        assert exc2.match("LogicEvalNode expects at least 2 children")
+
+        with pytest.raises(ValueError) as exc2:
+            DummyLogicEvalNode(["a", None])
+        assert exc2.match("LogicEvalNode received unexpected node type")
+
+    def test_valid_values(self):
+        node1 = DummyLogicEvalNode(["a", "b"])
+        assert isinstance(node1, LogicEvalNode)
+
+        node2 = DummyLogicEvalNode(["a", ["b"]])
+        assert isinstance(node2, LogicEvalNode)
+
+    def test_child_registration(self):
+        dummy = DummySingleDataNode()
+        data = DataVarNode("var")
+        node = DummyLogicEvalNode(["str", 123, ["str2"], [dummy], data, "str"])
+
+        assert node.child_nodes == [dummy]
+        assert node._LogicEvalNode__child_nodes == ["str", 123, "str2", dummy, data]  # noqa
+
+    def test_statements_primitives(self):
+        node = DummyLogicEvalNode(["str1", "str2", "str3"])
+
+        assert node.to_asp(with_comment=True) == [
+            "% str1 DUMMY str2 DUMMY str3",
+            "dummy(mock1) :- sd7b5808c3f443eb5a496225468c7e4a5 ~~ s6dc84905d6df841d6f19153bd593e213, "
+            "s6dc84905d6df841d6f19153bd593e213 ~~ sbbcdf42954dfd002eca26250327c7601.",
+        ]
+
+    def test_statements_single_data_var(self):
+        data_var = DataVarNode("var_name")
+        node = DummyLogicEvalNode(["str1", data_var, "str2"])
+
+        assert node.to_asp(with_comment=True) == [
+            "% str1 DUMMY var_name DUMMY str2",
+            "dummy(mock2) :- var(s86536e21993c5a96a4d4c9c9afcc9b17, V1), "
+            "sd7b5808c3f443eb5a496225468c7e4a5 ~~ V1, V1 ~~ s6dc84905d6df841d6f19153bd593e213.",
+        ]
+
+    def test_statements_multi_data_var(self):
+        data_var1 = DataVarNode("var_name1")
+        data_var2 = DataVarNode("var_name2")
+        node = DummyLogicEvalNode([data_var1, "str", data_var2])
+
+        assert node.to_asp(with_comment=True) == [
+            "% var_name1 DUMMY str DUMMY var_name2",
+            "dummy(mock3) :- var(sba2b7e1d0917308739c065694dada0f0, V1), var(sa3560e2eb08629b2750d15e8549f29c8, V2), "
+            "V1 ~~ s341be97d9aff90c9978347f66f945b77, s341be97d9aff90c9978347f66f945b77 ~~ V2.",
+        ]
+
+    def test_statements_multi_data_var_only(self):
+        data_var1 = DataVarNode("var_name1")
+        data_var2 = DataVarNode("var_name2")
+        data_var3 = DataVarNode("var_name3")
+        node = DummyLogicEvalNode([data_var1, data_var2, data_var3])
+
+        assert node.to_asp(with_comment=True) == [
+            "% var_name1 DUMMY var_name2 DUMMY var_name3",
+            "dummy(mock4) :- var(sba2b7e1d0917308739c065694dada0f0, V1), "
+            "var(sa3560e2eb08629b2750d15e8549f29c8, V2), var(se4ea6bbcc25f950424a3dc160aca54d0, V3), "
+            "V1 ~~ V2, V2 ~~ V3.",
+        ]
+
+    def test_statements_single_data_node(self):
+        data_var = DataVarNode("var_name")
+        dummy = DummySingleDataNode()
+        node = DummyLogicEvalNode([data_var, dummy])
+
+        assert node.to_asp(with_comment=True) == [
+            "% TEST mock2",
+            "test(mock2, T) :- T = mock2.",
+            "% var_name DUMMY TEST(mock2)",
+            "dummy(mock3) :- var(s86536e21993c5a96a4d4c9c9afcc9b17, V1), test(mock2, V2), "
+            "V1 ~~ V2.",
+        ]
+
+    def test_statements_multi_data_node(self):
+        data_var = DataVarNode("var_name")
+        dummy1 = DummySingleDataNode()
+        dummy2 = DummySingleDataNode()
+        node = DummyLogicEvalNode([dummy1, data_var, dummy2])
+
+        assert node.to_asp(with_comment=True) == [
+            "% TEST mock2",
+            "test(mock2, T) :- T = mock2.",
+            "% TEST mock3",
+            "test(mock3, T) :- T = mock3.",
+            "% TEST(mock2) DUMMY var_name DUMMY TEST(mock3)",
+            "dummy(mock4) :- test(mock2, V1), var(s86536e21993c5a96a4d4c9c9afcc9b17, V2), test(mock3, V3), "
+            "V1 ~~ V2, V2 ~~ V3.",
+        ]
+
+    def test_str(self):
+        node = DummyLogicEvalNode(["a", "b"])
+
+        assert str(node) == "DUMMY(mock1)"
+
+    def test_hash(self):
+        node = DummyLogicEvalNode(["a", "b"])
+        node2 = DummyLogicEvalNode(["b", "a"])
+        node3 = DummyLogicEvalNode(["a", "b"])
+        node4 = DummyLogicEvalNode(["a", "b2"])
+
+        nested_hash = tuple(sorted(hash(child) for child in node._LogicEvalNode__child_nodes))  ## noqa
+        assert hash(node) == hash(("dummy", nested_hash)) == hash(node3) == hash(node3) != hash(node4)
+        assert node == node2 == node3 != node4
 
 
 def test_logic_equal_node():
