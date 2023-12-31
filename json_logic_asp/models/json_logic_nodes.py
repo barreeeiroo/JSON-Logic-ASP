@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, List, Tuple, Type, final
+from typing import Any, List, Optional, Tuple, Type, final
 
 from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.models.asp_base import Statement
@@ -82,10 +82,13 @@ class JsonLogicNode(ABC):
 
 
 class JsonLogicTreeNode(JsonLogicNode, ABC):
-    def __init__(self, *args, **kwargs):
-        if "accepted_child_node_types" not in kwargs:
-            kwargs["accepted_child_node_types"] = (JsonLogicTreeNode, JsonLogicOperationNode)
-        super().__init__(*args, **kwargs)
+    def __init__(self, operation_name: str, accepted_child_node_types: Optional[Tuple[Type, ...]] = None):
+        if accepted_child_node_types is None:
+            accepted_child_node_types = (
+                JsonLogicTreeNode,
+                JsonLogicOperationNode,
+            )
+        super().__init__(operation_name=operation_name, accepted_child_node_types=accepted_child_node_types)
 
     @final
     def get_asp_atom(self) -> PredicateAtom:
@@ -107,10 +110,10 @@ class JsonLogicTreeNode(JsonLogicNode, ABC):
 
 
 class JsonLogicOperationNode(JsonLogicNode, ABC):
-    def __init__(self, *args, **kwargs):
-        if "accepted_child_node_types" not in kwargs:
-            kwargs["accepted_child_node_types"] = (JsonLogicDataNode,)
-        super().__init__(*args, **kwargs)
+    def __init__(self, operation_name: str, accepted_child_node_types: Optional[Tuple[Type, ...]] = None):
+        if accepted_child_node_types is None:
+            accepted_child_node_types = (JsonLogicDataNode,)
+        super().__init__(operation_name=operation_name, accepted_child_node_types=accepted_child_node_types)
 
     def get_asp_atom(self) -> PredicateAtom:
         return PredicateAtom(
@@ -120,10 +123,12 @@ class JsonLogicOperationNode(JsonLogicNode, ABC):
 
 
 class JsonLogicDataNode(JsonLogicOperationNode, ABC):
-    def __init__(self, term_variable_name: str, *args, **kwargs):
-        if "accepted_child_node_types" not in kwargs:
-            kwargs["accepted_child_node_types"] = ()
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self, term_variable_name: str, operation_name: str, accepted_child_node_types: Optional[Tuple[Type, ...]] = None
+    ):
+        if accepted_child_node_types is None:
+            accepted_child_node_types = ()
+        super().__init__(operation_name=operation_name, accepted_child_node_types=accepted_child_node_types)
         self.term_variable_name = term_variable_name
 
     def get_asp_atom(self) -> PredicateAtom:
@@ -146,10 +151,22 @@ class JsonLogicDataNode(JsonLogicOperationNode, ABC):
 
 
 class JsonLogicSingleDataNode(JsonLogicDataNode, ABC):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self, term_variable_name: str, operation_name: str, accepted_child_node_types: Optional[Tuple[Type, ...]] = None
+    ):
+        super().__init__(
+            term_variable_name=term_variable_name,
+            operation_name=operation_name,
+            accepted_child_node_types=accepted_child_node_types,
+        )
 
 
 class JsonLogicMultiDataNode(JsonLogicDataNode, ABC):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self, term_variable_name: str, operation_name: str, accepted_child_node_types: Optional[Tuple[Type, ...]] = None
+    ):
+        super().__init__(
+            term_variable_name=term_variable_name,
+            operation_name=operation_name,
+            accepted_child_node_types=accepted_child_node_types,
+        )
