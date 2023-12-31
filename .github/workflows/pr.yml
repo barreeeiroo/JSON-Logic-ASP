@@ -81,7 +81,7 @@ jobs:
 
   codecov:
     needs:
-      - build
+      - lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
