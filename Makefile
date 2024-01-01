@@ -13,7 +13,7 @@ lint-strict: format
 	poetry run ruff check json_logic_asp/ tests/
 
 mypy:
-	poetry run mypy --pretty json_logic_asp/ tests/
+	poetry run mypy --pretty --check-untyped-def json_logic_asp/ tests/
 
 test:
 	poetry run pytest
