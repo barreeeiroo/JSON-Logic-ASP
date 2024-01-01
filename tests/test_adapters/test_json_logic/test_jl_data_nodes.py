@@ -6,6 +6,12 @@ from json_logic_asp.adapters.json_logic.jl_data_nodes import DataMissingNode, Da
 class TestDataVarNode:
     def test_invalid_value(self):
         with pytest.raises(ValueError):
+            DataVarNode()
+
+        with pytest.raises(ValueError):
+            DataVarNode("var_name1", "var_name2")
+
+        with pytest.raises(ValueError):
             DataVarNode(123)
 
         with pytest.raises(ValueError):
@@ -37,6 +43,9 @@ class TestDataVarNode:
 
 class TestDataMissingNode:
     def test_invalid_value(self):
+        with pytest.raises(ValueError):
+            DataMissingNode()
+
         with pytest.raises(ValueError):
             DataMissingNode(123)
 
