@@ -108,7 +108,8 @@ class LogicIfNode(JsonLogicTreeNode):
 
 class LogicEvalNode(JsonLogicOperationNode, ABC):
     def __init__(self, *children, comparator: str, predicate: str):
-        super().__init__(operation_name=predicate)
+        super().__init__(operation_name=predicate,
+                         accepted_child_node_types=(JsonLogicSingleDataNode, str, bool, float, int))
 
         self.comparator = comparator
         self.predicate = predicate
@@ -116,30 +117,19 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
         if len(children) < 2:
             raise ValueError(f"LogicEvalNode expects at least 2 children, received {len(children)}")
 
-        self.__child_nodes: List[Union[JsonLogicSingleDataNode, str, bool, float, int]] = []
         for node in children:
             if isinstance(node, list) and len(node) == 1:
                 node = node[0]
-
-            if not isinstance(node, (JsonLogicSingleDataNode, str, bool, float, int)):
-                raise ValueError(f"LogicEvalNode received unexpected node type {type(node)}")
-
-            if node in self.__child_nodes:
-                continue
-
-            self.__child_nodes.append(node)
-
-            if isinstance(node, JsonLogicSingleDataNode) and not isinstance(node, DataVarNode):
-                self.register_child(node)
+            self.register_child(node)
 
     def get_asp_statements(self) -> List[Statement]:
         literals: List[Literal] = []
         comment_parts: List[str] = []
 
-        total_comparisons = len(self.__child_nodes) - 1
+        total_comparisons = len(self.child_nodes) - 1
 
         variable_names: Dict[JsonLogicSingleDataNode, str] = {}
-        for child_node in self.__child_nodes:
+        for child_node in self.child_nodes:
             if not isinstance(child_node, JsonLogicSingleDataNode):
                 continue
 
@@ -148,7 +138,7 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
             literals.append(child_node.get_asp_atom_with_different_variable_name(var_name))
 
         for i in range(total_comparisons):
-            left, right = self.__child_nodes[i], self.__child_nodes[i + 1]
+            left, right = self.child_nodes[i], self.child_nodes[i + 1]
 
             if isinstance(left, JsonLogicSingleDataNode):
                 if i == 0:
@@ -186,7 +176,7 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
         return f"{self.predicate.upper()}({self.node_id})"
 
     def __hash__(self):
-        return hash((self.predicate, tuple(sorted(hash(child) for child in self.__child_nodes))))
+        return hash((self.predicate, tuple(sorted(hash(child) for child in self.child_nodes))))
 
 
 class LogicEqualNode(LogicEvalNode):

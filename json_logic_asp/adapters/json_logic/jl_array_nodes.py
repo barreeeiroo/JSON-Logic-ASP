@@ -18,33 +18,23 @@ from json_logic_asp.utils.json_logic_helpers import value_encoder
 class ArrayMergeNode(JsonLogicMultiDataNode):
     def __init__(self, *children):
         super().__init__(
-            accepted_child_node_types=(JsonLogicDataNode,),
+            accepted_child_node_types=(JsonLogicDataNode,int, float, bool, str),
             term_variable_name=VariableNames.MERGE,
             operation_name=PredicateNames.ARRAY_MERGE,
         )
-
-        self.__child_nodes: List[Union[JsonLogicDataNode, int, float, bool, str]] = []
 
         for values in children:
             if not isinstance(values, list):
                 values = [values]
 
             for value in values:
-                if not isinstance(value, (JsonLogicDataNode, int, float, bool, str)):
-                    raise ValueError(f"ArrayMergeNode received unexpected node type {type(value)}")
-                if value not in self.__child_nodes:
-                    self.__child_nodes.append(value)
-
-        for child_node in self.__child_nodes:
-            if not isinstance(child_node, JsonLogicNode) or isinstance(child_node, DataVarNode):
-                continue
-            self.register_child(child_node)
+                self.register_child(value)
 
     def get_asp_statements(self) -> List[Statement]:
         stmts: List[Statement] = []
 
-        primitives = [v for v in self.__child_nodes if not isinstance(v, JsonLogicDataNode)]
-        var_nodes = [v for v in self.__child_nodes if isinstance(v, JsonLogicDataNode)]
+        primitives = [v for v in self.child_nodes if not isinstance(v, JsonLogicDataNode)]
+        var_nodes = [v for v in self.child_nodes if isinstance(v, JsonLogicDataNode)]
 
         for var_node in var_nodes:
             if isinstance(var_node, JsonLogicDataNode):
@@ -78,13 +68,14 @@ class ArrayMergeNode(JsonLogicMultiDataNode):
 
     def __hash__(self):
         return hash(
-            (PredicateNames.ARRAY_MERGE, tuple(sorted([hash(val) for val in self.__child_nodes]))),
+            (PredicateNames.ARRAY_MERGE, tuple(sorted([hash(val) for val in self.child_nodes]))),
         )
 
 
 class ArrayInNode(JsonLogicOperationNode):
     def __init__(self, *children):
-        super().__init__(operation_name=PredicateNames.ARRAY_IN)
+        super().__init__(operation_name=PredicateNames.ARRAY_IN,
+                         accepted_child_node_types=(JsonLogicDataNode, list))
 
         if len(children) != 2:
             raise ValueError(f"ArrayInNode expects 2 children, received {len(children)}")
@@ -125,8 +116,6 @@ class ArrayInNode(JsonLogicOperationNode):
                     raise ValueError(f"ArrayInNode expects at least 1 list primitive nodes, received {t}")
 
         for node in children:
-            if not isinstance(node, JsonLogicNode) or isinstance(node, DataVarNode):
-                continue
             self.register_child(node)
 
     def get_asp_statements(self) -> List[Statement]:

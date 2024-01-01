@@ -10,15 +10,15 @@ class TestArrayMergeNode:
     def test_invalid_values(self):
         with pytest.raises(ValueError) as exc1:
             ArrayMergeNode("valid", None)
-        assert exc1.match("ArrayMergeNode received unexpected node type")
+        assert exc1.match("Found unexpected child_node type NoneType for ArrayMergeNode")
 
         with pytest.raises(ValueError) as exc2:
             ArrayMergeNode(BooleanAndNode())
-        assert exc2.match("ArrayMergeNode received unexpected node type")
+        assert exc2.match("Found unexpected child_node type BooleanAndNode for ArrayMergeNode")
 
         with pytest.raises(ValueError) as exc3:
             ArrayMergeNode(LogicEqualNode("a", "b"))
-        assert exc3.match("ArrayMergeNode received unexpected node type")
+        assert exc3.match("Found unexpected child_node type LogicEqualNode for ArrayMergeNode")
 
     def test_valid_values(self):
         node = ArrayMergeNode("a", "b")
@@ -29,8 +29,7 @@ class TestArrayMergeNode:
         data = DataVarNode("var")
         node = ArrayMergeNode("str", 123, ["str2", merge], data, "str")
 
-        assert node.child_nodes == [merge]
-        assert node._ArrayMergeNode__child_nodes == ["str", 123, "str2", merge, data]  # noqa
+        assert node.child_nodes == ["str", 123, "str2", merge, data]
 
     def test_atom_generation(self):
         node = ArrayMergeNode("merged1", "merged2")
@@ -116,7 +115,9 @@ class TestArrayInNode:
 
         assert node_left_list.list_node == ["b", "c"] == node_right_list.list_node
         assert node_left_list.data_node == data_var == node_right_list.data_node
-        assert node_left_list.child_nodes == [] == node_right_list.child_nodes
+        assert len(node_left_list.child_nodes) == 2 == len(node_right_list.child_nodes)
+        assert data_var in node_left_list.child_nodes and ["b", "c"] in node_left_list.child_nodes
+        assert data_var in node_right_list.child_nodes and ["b", "c"] in node_right_list.child_nodes
         assert node_left_list == node_right_list
 
     def test_child_registration_inner(self):
@@ -126,7 +127,7 @@ class TestArrayInNode:
 
         assert node.list_node == merge
         assert node.data_node == data_var
-        assert node.child_nodes == [merge]
+        assert node.child_nodes == [merge, data_var]
 
     def test_statements_list(self):
         data_var = DataVarNode("data_var")

@@ -259,7 +259,7 @@ class TestLogicEvalNode:
 
         with pytest.raises(ValueError) as exc2:
             DummyLogicEvalNode("a", None)
-        assert exc2.match("LogicEvalNode received unexpected node type")
+        assert exc2.match("Found unexpected child_node type NoneType for DummyLogicEvalNode")
 
     def test_valid_values(self):
         node1 = DummyLogicEvalNode("a", "b")
@@ -273,8 +273,7 @@ class TestLogicEvalNode:
         data = DataVarNode("var")
         node = DummyLogicEvalNode("str", 123, ["str2"], [dummy], data, "str")
 
-        assert node.child_nodes == [dummy]
-        assert node._LogicEvalNode__child_nodes == ["str", 123, "str2", dummy, data]  # noqa
+        assert node.child_nodes == ["str", 123, "str2", dummy, data]
 
     def test_statements_primitives(self):
         node = DummyLogicEvalNode("str1", "str2", "str3")
@@ -358,7 +357,7 @@ class TestLogicEvalNode:
         node3 = DummyLogicEvalNode("a", "b")
         node4 = DummyLogicEvalNode("a", "b2")
 
-        nested_hash = tuple(sorted(hash(child) for child in node._LogicEvalNode__child_nodes))  ## noqa
+        nested_hash = tuple(sorted(hash(child) for child in node.child_nodes))
         assert hash(node) == hash(("dummy", nested_hash)) == hash(node3) == hash(node3) != hash(node4)
         assert node == node2 == node3 != node4
 
