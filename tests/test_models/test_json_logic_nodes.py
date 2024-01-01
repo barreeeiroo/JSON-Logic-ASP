@@ -241,6 +241,10 @@ class TestJsonLogicDataNode:
         node = cls(operation_name="test", term_variable_name="T")
         assert node.get_asp_atom_with_different_variable_name("V").to_asp_atom() == "test(mock1, V)"
 
+    def test_asp_atom_with_different_var_name_negated(self, cls):
+        node = cls(operation_name="test", term_variable_name="T")
+        assert node.get_asp_atom_with_different_variable_name("V", negated=True).to_asp_atom() == "not test(mock1, V)"
+
     def test_to_asp(self, cls):
         node = cls(operation_name="test2", term_variable_name="T")
         assert node.to_asp() == ["test2(mock1, T)."]

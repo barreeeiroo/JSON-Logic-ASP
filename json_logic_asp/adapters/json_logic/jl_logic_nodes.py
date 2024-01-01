@@ -20,7 +20,7 @@ class LogicIfNode(JsonLogicTreeNode):
         )
 
         if len(children) < 1:
-            raise ValueError(f"LogicIfNode at least 1 child, received {len(children)}")
+            raise ValueError("LogicIfNode at least 1 child")
 
         for child_node in children:
             self.register_child(child_node)

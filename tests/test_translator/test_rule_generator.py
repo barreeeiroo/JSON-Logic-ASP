@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 import pytest
 
@@ -6,7 +6,7 @@ from json_logic_asp.adapters.json_logic.jl_boolean_nodes import BooleanAndNode, 
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataMissingNode, DataVarNode
 from json_logic_asp.adapters.json_logic.jl_logic_nodes import LogicEqualNode
 from json_logic_asp.models.asp_base import Statement
-from json_logic_asp.models.json_logic_nodes import JsonLogicTreeNode
+from json_logic_asp.models.json_logic_nodes import JsonLogicNode, JsonLogicTreeNode
 from json_logic_asp.translator.rule_generator import (
     SUPPORTED_NODE_TYPES,
     __get_or_update_cache,
@@ -29,7 +29,7 @@ def test_get_or_update_cache_present():
     dummy_existing_node = DummyTestNode(operation_name="test2")
     dummy_new_node = DummyTestNode(operation_name="test")
 
-    node_cache = {str(hash(dummy_new_node)): dummy_existing_node}
+    node_cache: Dict[str, JsonLogicNode] = {str(hash(dummy_new_node)): dummy_existing_node}
     cached_node = __get_or_update_cache(dummy_new_node, node_cache)
 
     assert dummy_new_node != cached_node == dummy_existing_node
