@@ -6,26 +6,42 @@ from json_logic_asp.adapters.asp.asp_statements import FactStatement, RuleStatem
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
 from json_logic_asp.constants.asp_naming import PredicateNames, VariableNames
 from json_logic_asp.models.asp_base import Statement
-from json_logic_asp.models.json_logic_nodes import JsonLogicDataNode, JsonLogicTreeNode
+from json_logic_asp.models.json_logic_nodes import (
+    JsonLogicDataNode,
+    JsonLogicNode,
+    JsonLogicOperationNode,
+    JsonLogicTreeNode,
+)
 
 
 class BooleanAndOrNode(JsonLogicTreeNode, ABC):
     def __init__(self, *children, operation_name: str):
-        super().__init__(operation_name=operation_name)
+        super().__init__(
+            operation_name=operation_name,
+            accepted_child_node_types=(
+                JsonLogicTreeNode,
+                JsonLogicOperationNode,
+                bool,
+            ),
+        )
 
         if len(children) < 1:
             raise ValueError(f"{self.__class__.__name__} requires at least 1 child")
 
-        self.has_true: bool = False
-        self.has_false: bool = False
-
         for child_node in children:
-            if isinstance(child_node, bool):
-                self.has_false = self.has_false or child_node is False
-                self.has_true = self.has_true or child_node is True
-                continue
-
             self.register_child(child_node)
+
+    @property
+    def has_true(self) -> bool:
+        return any(child_node is True for child_node in self.child_nodes)
+
+    @property
+    def has_false(self) -> bool:
+        return any(child_node is False for child_node in self.child_nodes)
+
+    @property
+    def has_non_bool_nodes(self) -> bool:
+        return any(not isinstance(child_node, bool) for child_node in self.child_nodes)
 
 
 class BooleanAndNode(BooleanAndOrNode):
@@ -37,7 +53,7 @@ class BooleanAndNode(BooleanAndOrNode):
             # If the condition can never be satisfied, return no statements (never satisfy the node)
             return []
 
-        if self.has_true and not self.child_nodes:
+        if self.has_true and not self.has_non_bool_nodes:
             # If any True present but no other children, then it's just a fact
             return [
                 FactStatement(
@@ -48,6 +64,8 @@ class BooleanAndNode(BooleanAndOrNode):
         # For each child node, get the atom and use it as literal
         child_statements: Dict[str, PredicateAtom] = {}
         for child_node in self.child_nodes:
+            if not isinstance(child_node, JsonLogicNode):
+                continue
             child_statements[child_node.node_id] = child_node.get_asp_atom()
 
         return [
@@ -70,12 +88,14 @@ class BooleanOrNode(BooleanAndOrNode):
                 )
             ]
 
-        if not self.child_nodes:
+        if not self.has_non_bool_nodes:
             return []
 
         stmts: List[Statement] = []
 
         for child_node in self.child_nodes:
+            if not isinstance(child_node, JsonLogicNode):
+                continue
             statement = RuleStatement(
                 atom=self.get_asp_atom(),
                 literals=[child_node.get_asp_atom()],
