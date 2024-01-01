@@ -1,6 +1,7 @@
-from typing import List
+from typing import List, Union
 
 from json_logic_asp.adapters.asp.asp_literals import Literal, PredicateAtom
+from json_logic_asp.constants.asp_naming import PredicateNames
 from json_logic_asp.models.asp_base import Statement
 
 
@@ -34,5 +35,7 @@ class DirectiveStatement(Statement):
 
 
 class ShowStatement(DirectiveStatement):
-    def __init__(self, statement: str, length: int):
-        super().__init__(action="show", statement=f"{statement}/{length}")
+    def __init__(self, predicate: Union[str, PredicateNames], length: int):
+        if isinstance(predicate, PredicateNames):
+            predicate = predicate.value
+        super().__init__(action="show", statement=f"{predicate}/{length}")

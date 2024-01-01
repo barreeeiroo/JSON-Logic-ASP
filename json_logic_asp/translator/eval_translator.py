@@ -1,6 +1,7 @@
 from typing import List
 
 from json_logic_asp.adapters.asp.asp_statements import ShowStatement
+from json_logic_asp.constants.asp_naming import PredicateNames
 from json_logic_asp.models.translator_dto import DataInput, RuleInput, RuleOutput
 from json_logic_asp.translator.data_generator import generate_single_data_asp_definition
 from json_logic_asp.translator.rule_generator import generate_multiple_rule_asp_definition
@@ -25,7 +26,7 @@ def translate_multi_rule_eval(
     stmts.append("")
     stmts.append(rule_str)
     stmts.append("")
-    stmts.append(ShowStatement("rule", 1).to_asp_statement())
+    stmts.append(ShowStatement(PredicateNames.RULE, 1).to_asp_statement())
 
     return RuleOutput(
         statements=stmts,
