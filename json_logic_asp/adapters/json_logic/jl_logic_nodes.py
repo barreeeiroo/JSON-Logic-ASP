@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Dict, List, Union
+from typing import Dict, List
 
 from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal, PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
@@ -108,8 +108,9 @@ class LogicIfNode(JsonLogicTreeNode):
 
 class LogicEvalNode(JsonLogicOperationNode, ABC):
     def __init__(self, *children, comparator: str, predicate: str):
-        super().__init__(operation_name=predicate,
-                         accepted_child_node_types=(JsonLogicSingleDataNode, str, bool, float, int))
+        super().__init__(
+            operation_name=predicate, accepted_child_node_types=(JsonLogicSingleDataNode, str, bool, float, int)
+        )
 
         self.comparator = comparator
         self.predicate = predicate

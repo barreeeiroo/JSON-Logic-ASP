@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement

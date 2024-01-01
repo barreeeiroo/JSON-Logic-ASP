@@ -8,7 +8,6 @@ from json_logic_asp.models.asp_base import Statement
 from json_logic_asp.models.json_logic_nodes import (
     JsonLogicDataNode,
     JsonLogicMultiDataNode,
-    JsonLogicNode,
     JsonLogicOperationNode,
     JsonLogicSingleDataNode,
 )
@@ -18,7 +17,7 @@ from json_logic_asp.utils.json_logic_helpers import value_encoder
 class ArrayMergeNode(JsonLogicMultiDataNode):
     def __init__(self, *children):
         super().__init__(
-            accepted_child_node_types=(JsonLogicDataNode,int, float, bool, str),
+            accepted_child_node_types=(JsonLogicDataNode, int, float, bool, str),
             term_variable_name=VariableNames.MERGE,
             operation_name=PredicateNames.ARRAY_MERGE,
         )
@@ -74,8 +73,7 @@ class ArrayMergeNode(JsonLogicMultiDataNode):
 
 class ArrayInNode(JsonLogicOperationNode):
     def __init__(self, *children):
-        super().__init__(operation_name=PredicateNames.ARRAY_IN,
-                         accepted_child_node_types=(JsonLogicDataNode, list))
+        super().__init__(operation_name=PredicateNames.ARRAY_IN, accepted_child_node_types=(JsonLogicDataNode, list))
 
         if len(children) != 2:
             raise ValueError(f"ArrayInNode expects 2 children, received {len(children)}")
