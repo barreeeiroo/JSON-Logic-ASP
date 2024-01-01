@@ -16,6 +16,7 @@ from json_logic_asp.adapters.json_logic.jl_logic_nodes import (
     LogicStrictEqualNode,
     LogicStrictNotEqualNode,
 )
+from json_logic_asp.constants.asp_naming import PredicateNames
 from json_logic_asp.constants.json_logic_ops import JsonLogicOps
 from json_logic_asp.models.json_logic_nodes import JsonLogicNode
 from json_logic_asp.models.translator_dto import RuleInput
@@ -134,7 +135,7 @@ def generate_multiple_rule_asp_definition(
         mapping[hashed_id] = rule_input.rule_id
 
         root_statement = RuleStatement(
-            atom=PredicateAtom(predicate_name="rule", terms=[hashed_id]),
+            atom=PredicateAtom(predicate_name=PredicateNames.RULE, terms=[hashed_id]),
             literals=[root_node.get_asp_atom()],
             comment=rule_input.rule_id,
         )

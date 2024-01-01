@@ -21,6 +21,8 @@ class PredicateNames(str, Enum):
     LOGIC_GREATER = "gt"
     LOGIC_GREATEREQUAL = "gte"
 
+    RULE = "rule"
+
 
 class VariableNames(str, Enum):
     ANY = "_"

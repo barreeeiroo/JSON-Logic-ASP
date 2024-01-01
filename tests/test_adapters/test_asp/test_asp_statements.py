@@ -1,5 +1,6 @@
 from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import DirectiveStatement, FactStatement, RuleStatement, ShowStatement
+from json_logic_asp.constants.asp_naming import PredicateNames
 
 
 class TestFactStatement:
@@ -36,5 +37,9 @@ class TestDirectiveStatement:
 
 class TestShowStatement:
     def test_statement(self):
-        stmt = ShowStatement(statement="test", length=2)
+        stmt = ShowStatement(predicate="test", length=2)
         assert stmt.to_asp_statement() == "#show test/2."
+
+    def test_statement_enum(self):
+        stmt = ShowStatement(predicate=PredicateNames.RULE, length=1)
+        assert stmt.to_asp_statement() == "#show rule/1."
