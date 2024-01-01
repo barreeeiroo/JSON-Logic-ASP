@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "json-logic-asp"
-version = "0.2.7"
+version = "0.3.0"
 description = "Python JSON Logic evaluator in ASP"
 homepage = "https://github.com/barreeeiroo/JSON-Logic-ASP/"
 repository = "https://github.com/barreeeiroo/JSON-Logic-ASP"

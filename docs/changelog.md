@@ -2,6 +2,12 @@
 
 ## v0.X
 
+### v0.3.0
+
+- Added 100% unit test coverage
+    - Pending to add integration tests
+- Fixed minor issues
+
 ### v0.2.7
 
 - Improve code
