@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any, Dict, List, Union
+from typing import Dict, List
 
 from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal, PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
@@ -12,20 +12,17 @@ from json_logic_asp.utils.json_logic_helpers import value_encoder
 
 
 class LogicIfNode(JsonLogicTreeNode):
-    def __init__(self, child_nodes: Any):
+    def __init__(self, *children):
         super().__init__(
             operation_name=PredicateNames.LOGIC_IF,
             # TODO: Add support for booleans
             accepted_child_node_types=(JsonLogicTreeNode, JsonLogicOperationNode),
         )
 
-        if not isinstance(child_nodes, list):
-            raise ValueError(f"LogicIfNode expects a list as child, received {type(child_nodes).__name__}")
+        if len(children) < 1:
+            raise ValueError(f"LogicIfNode at least 1 child, received {len(children)}")
 
-        if len(child_nodes) < 1:
-            raise ValueError(f"LogicIfNode at least 1 child, received {len(child_nodes)}")
-
-        for child_node in child_nodes:
+        for child_node in children:
             self.register_child(child_node)
 
     def get_asp_statements(self) -> List[Statement]:
@@ -110,42 +107,30 @@ class LogicIfNode(JsonLogicTreeNode):
 
 
 class LogicEvalNode(JsonLogicOperationNode, ABC):
-    def __init__(self, comparator: str, predicate: str, node_value: Any):
-        super().__init__(operation_name=predicate)
+    def __init__(self, *children, comparator: str, predicate: str):
+        super().__init__(
+            operation_name=predicate, accepted_child_node_types=(JsonLogicSingleDataNode, str, bool, float, int)
+        )
 
         self.comparator = comparator
         self.predicate = predicate
 
-        if not isinstance(node_value, list):
-            raise ValueError(f"LogicEvalNode expects a list as child, received {type(node_value).__name__}")
+        if len(children) < 2:
+            raise ValueError(f"LogicEvalNode expects at least 2 children, received {len(children)}")
 
-        if len(node_value) < 2:
-            raise ValueError(f"LogicEvalNode expects at least 2 children, received {len(node_value)}")
-
-        self.__child_nodes: List[Union[JsonLogicSingleDataNode, str, bool, float, int]] = []
-        for node in node_value:
+        for node in children:
             if isinstance(node, list) and len(node) == 1:
                 node = node[0]
-
-            if not isinstance(node, (JsonLogicSingleDataNode, str, bool, float, int)):
-                raise ValueError(f"LogicEvalNode received unexpected node type {type(node)}")
-
-            if node in self.__child_nodes:
-                continue
-
-            self.__child_nodes.append(node)
-
-            if isinstance(node, JsonLogicSingleDataNode) and not isinstance(node, DataVarNode):
-                self.register_child(node)
+            self.register_child(node)
 
     def get_asp_statements(self) -> List[Statement]:
         literals: List[Literal] = []
         comment_parts: List[str] = []
 
-        total_comparisons = len(self.__child_nodes) - 1
+        total_comparisons = len(self.child_nodes) - 1
 
         variable_names: Dict[JsonLogicSingleDataNode, str] = {}
-        for child_node in self.__child_nodes:
+        for child_node in self.child_nodes:
             if not isinstance(child_node, JsonLogicSingleDataNode):
                 continue
 
@@ -154,7 +139,7 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
             literals.append(child_node.get_asp_atom_with_different_variable_name(var_name))
 
         for i in range(total_comparisons):
-            left, right = self.__child_nodes[i], self.__child_nodes[i + 1]
+            left, right = self.child_nodes[i], self.child_nodes[i + 1]
 
             if isinstance(left, JsonLogicSingleDataNode):
                 if i == 0:
@@ -192,46 +177,46 @@ class LogicEvalNode(JsonLogicOperationNode, ABC):
         return f"{self.predicate.upper()}({self.node_id})"
 
     def __hash__(self):
-        return hash((self.predicate, tuple(sorted(hash(child) for child in self.__child_nodes))))
+        return hash((self.predicate, tuple(sorted(hash(child) for child in self.child_nodes))))
 
 
 class LogicEqualNode(LogicEvalNode):
-    def __init__(self, node_value: Any):
+    def __init__(self, *children):
         # TODO: This is wrong
-        super().__init__(comparator="==", predicate=PredicateNames.LOGIC_EQUALS, node_value=node_value)
+        super().__init__(comparator="==", predicate=PredicateNames.LOGIC_EQUALS, *children)
 
 
 class LogicNotEqualNode(LogicEvalNode):
-    def __init__(self, node_value: Any):
+    def __init__(self, *children):
         # TODO: This is wrong
-        super().__init__(comparator="!=", predicate=PredicateNames.LOGIC_NOTEQUALS, node_value=node_value)
+        super().__init__(comparator="!=", predicate=PredicateNames.LOGIC_NOTEQUALS, *children)
 
 
 class LogicStrictEqualNode(LogicEvalNode):
-    def __init__(self, node_value: Any):
-        super().__init__(comparator="==", predicate=PredicateNames.LOGIC_STRICTEQUALS, node_value=node_value)
+    def __init__(self, *children):
+        super().__init__(comparator="==", predicate=PredicateNames.LOGIC_STRICTEQUALS, *children)
 
 
 class LogicStrictNotEqualNode(LogicEvalNode):
-    def __init__(self, node_value: Any):
-        super().__init__(comparator="!=", predicate=PredicateNames.LOGIC_STRICTNOTEQUALS, node_value=node_value)
+    def __init__(self, *children):
+        super().__init__(comparator="!=", predicate=PredicateNames.LOGIC_STRICTNOTEQUALS, *children)
 
 
 class LogicLowerThanNode(LogicEvalNode):
-    def __init__(self, node_value: Any):
-        super().__init__(comparator="<", predicate=PredicateNames.LOGIC_LOWER, node_value=node_value)
+    def __init__(self, *children):
+        super().__init__(comparator="<", predicate=PredicateNames.LOGIC_LOWER, *children)
 
 
 class LogicLowerOrEqualThanNode(LogicEvalNode):
-    def __init__(self, node_value: Any):
-        super().__init__(comparator="<=", predicate=PredicateNames.LOGIC_LOWEREQUAL, node_value=node_value)
+    def __init__(self, *children):
+        super().__init__(comparator="<=", predicate=PredicateNames.LOGIC_LOWEREQUAL, *children)
 
 
 class LogicGreaterThanNode(LogicEvalNode):
-    def __init__(self, node_value: Any):
-        super().__init__(comparator=">", predicate=PredicateNames.LOGIC_GREATER, node_value=node_value)
+    def __init__(self, *children):
+        super().__init__(comparator=">", predicate=PredicateNames.LOGIC_GREATER, *children)
 
 
 class LogicGreaterOrEqualThanNode(LogicEvalNode):
-    def __init__(self, node_value: Any):
-        super().__init__(comparator=">=", predicate=PredicateNames.LOGIC_GREATEREQUAL, node_value=node_value)
+    def __init__(self, *children):
+        super().__init__(comparator=">=", predicate=PredicateNames.LOGIC_GREATEREQUAL, *children)

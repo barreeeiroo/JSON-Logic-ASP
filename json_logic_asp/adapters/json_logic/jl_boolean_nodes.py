@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from json_logic_asp.adapters.asp.asp_literals import PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
@@ -9,10 +9,10 @@ from json_logic_asp.models.json_logic_nodes import JsonLogicDataNode, JsonLogicT
 
 
 class BooleanAndNode(JsonLogicTreeNode):
-    def __init__(self, child_nodes: List[Any]):
+    def __init__(self, *children):
         super().__init__(operation_name=PredicateNames.BOOLEAN_AND)
 
-        for child_node in child_nodes:
+        for child_node in children:
             self.register_child(child_node)
 
     def get_asp_statements(self) -> List[Statement]:
@@ -30,10 +30,10 @@ class BooleanAndNode(JsonLogicTreeNode):
 
 
 class BooleanOrNode(JsonLogicTreeNode):
-    def __init__(self, child_nodes: List[Any]):
+    def __init__(self, *children):
         super().__init__(operation_name=PredicateNames.BOOLEAN_OR)
 
-        for child_node in child_nodes:
+        for child_node in children:
             self.register_child(child_node)
 
     def get_asp_statements(self) -> List[Statement]:
@@ -50,13 +50,13 @@ class BooleanOrNode(JsonLogicTreeNode):
 
 
 class BooleanNotNode(JsonLogicTreeNode):
-    def __init__(self, child_nodes: List[Any]):
+    def __init__(self, *children):
         super().__init__(operation_name=PredicateNames.BOOLEAN_NOT)
 
-        if len(child_nodes) != 1:
-            raise ValueError(f"BooleanNotNode expects only 1 child, received {len(child_nodes)}")
+        if len(children) != 1:
+            raise ValueError(f"BooleanNotNode expects only 1 child, received {len(children)}")
 
-        self.register_child(child_nodes[0])
+        self.register_child(children[0])
 
     def get_asp_statements(self) -> List[Statement]:
         # For each child node, get the atom and use it as literal

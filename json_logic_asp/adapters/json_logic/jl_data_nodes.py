@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import List
 
 from json_logic_asp.adapters.asp.asp_literals import Literal, PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
@@ -9,9 +9,13 @@ from json_logic_asp.utils.id_management import generate_constant_string
 
 
 class DataVarNode(JsonLogicSingleDataNode):
-    def __init__(self, node_value: Any):
+    def __init__(self, *children):
         super().__init__(term_variable_name=VariableNames.VAR, operation_name=PredicateNames.DATA_VAR)
 
+        if len(children) != 1:
+            raise ValueError(f"DataVarNode requires strictly 1 child, received {len(children)}")
+
+        node_value = children[0]
         if not isinstance(node_value, str):
             raise ValueError(f"DataVarNode requires str as value, received {type(node_value)}")
 
@@ -40,19 +44,16 @@ class DataVarNode(JsonLogicSingleDataNode):
 
 
 class DataMissingNode(JsonLogicOperationNode):
-    def __init__(self, node_value: Any):
+    def __init__(self, *children):
         super().__init__(operation_name=PredicateNames.DATA_MISSING)
 
-        if isinstance(node_value, str):
-            node_value = [node_value]
-
-        if not isinstance(node_value, list):
-            raise ValueError(f"DataMissingNode requires list as value, received {type(node_value)}")
+        if len(children) < 1:
+            raise ValueError(f"DataVarNode requires at least 1 child, received {len(children)}")
 
         self.var_names: List[str] = []
-        for var_name in node_value:
+        for var_name in children:
             if not isinstance(var_name, str):
-                raise ValueError(f"DataMissingNode requires str as value, received {type(var_name)}")
+                raise ValueError(f"DataMissingNode requires str as value, received {type(var_name).__name__}")
             if var_name not in self.var_names:
                 self.var_names.append(var_name)
 
