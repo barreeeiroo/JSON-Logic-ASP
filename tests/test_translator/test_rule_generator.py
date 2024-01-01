@@ -62,7 +62,7 @@ def test_is_valid_json_logic_node_custom_op():
     [
         ({"var": "a"}, DataVarNode("a")),
         ({"missing": "a"}, DataMissingNode("a")),
-        ({"==": [{"var": "a"}, "b"]}, LogicEqualNode([DataVarNode("a"), "b"])),
+        ({"==": [{"var": "a"}, "b"]}, LogicEqualNode(DataVarNode("a"), "b")),
         (
             {
                 "and": [
@@ -70,13 +70,13 @@ def test_is_valid_json_logic_node_custom_op():
                     {"missing": "c"},
                 ]
             },
-            BooleanAndNode([LogicEqualNode([DataVarNode("a"), "b"]), DataMissingNode("c")]),
+            BooleanAndNode(LogicEqualNode(DataVarNode("a"), "b"), DataMissingNode("c")),
         ),
         (
             {
                 "!": {"var": "a"},
             },
-            BooleanNotNode([DataVarNode("a")]),
+            BooleanNotNode(DataVarNode("a")),
         ),
     ],
     ids=[

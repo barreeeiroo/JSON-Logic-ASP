@@ -46,7 +46,7 @@ class TestDataMissingNode:
     def test_valid_value(self):
         node1 = DataMissingNode("var_name")
         assert isinstance(node1, DataMissingNode)
-        node2 = DataMissingNode(["var1", "var2"])
+        node2 = DataMissingNode("var1", "var2")
         assert isinstance(node2, DataMissingNode)
 
     def test_statements_single_var(self):
@@ -56,7 +56,7 @@ class TestDataMissingNode:
         assert stmts[0] == "missing(mock1) :- not var(s86536e21993c5a96a4d4c9c9afcc9b17, _)."
 
     def test_statements_multi_var(self):
-        node = DataMissingNode(["var1", "var2"])
+        node = DataMissingNode("var1", "var2")
         stmts = node.to_asp()
         assert len(stmts) == 1
         assert (
@@ -72,7 +72,7 @@ class TestDataMissingNode:
         assert stmts[1] == "missing(mock1) :- not var(s86536e21993c5a96a4d4c9c9afcc9b17, _)."
 
     def test_statements_multi_var_comment(self):
-        node = DataMissingNode(["var1", "var2"])
+        node = DataMissingNode("var1", "var2")
         stmts = node.to_asp(with_comment=True)
         assert len(stmts) == 2
         assert stmts[0] == "% Missing var1 var2"
@@ -82,7 +82,7 @@ class TestDataMissingNode:
         )
 
     def test_str_repr(self):
-        node = DataMissingNode(["var1", "var2"])
+        node = DataMissingNode("var1", "var2")
         assert str(node) == "MISSING(var1,var2)"
 
     def test_hash(self):

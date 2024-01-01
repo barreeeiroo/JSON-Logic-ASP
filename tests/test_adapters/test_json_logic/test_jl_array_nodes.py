@@ -9,41 +9,37 @@ from json_logic_asp.adapters.json_logic.jl_logic_nodes import LogicEqualNode
 class TestArrayMergeNode:
     def test_invalid_values(self):
         with pytest.raises(ValueError) as exc1:
-            ArrayMergeNode("single_node")
-        assert exc1.match("ArrayMergeNode requires list as value")
+            ArrayMergeNode("valid", None)
+        assert exc1.match("ArrayMergeNode received unexpected node type")
 
         with pytest.raises(ValueError) as exc2:
-            ArrayMergeNode(["valid", None])
+            ArrayMergeNode(BooleanAndNode())
         assert exc2.match("ArrayMergeNode received unexpected node type")
 
         with pytest.raises(ValueError) as exc3:
-            ArrayMergeNode([BooleanAndNode([])])
+            ArrayMergeNode(LogicEqualNode("a", "b"))
         assert exc3.match("ArrayMergeNode received unexpected node type")
 
-        with pytest.raises(ValueError) as exc4:
-            ArrayMergeNode([LogicEqualNode(["a", "b"])])
-        assert exc4.match("ArrayMergeNode received unexpected node type")
-
     def test_valid_values(self):
-        node = ArrayMergeNode(["a", "b"])
+        node = ArrayMergeNode("a", "b")
         assert isinstance(node, ArrayMergeNode)
 
     def test_child_registration(self):
-        merge = ArrayMergeNode(["merged1", "merged2"])
+        merge = ArrayMergeNode("merged1", "merged2")
         data = DataVarNode("var")
-        node = ArrayMergeNode(["str", 123, ["str2", merge], data, "str"])
+        node = ArrayMergeNode("str", 123, ["str2", merge], data, "str")
 
         assert node.child_nodes == [merge]
         assert node._ArrayMergeNode__child_nodes == ["str", 123, "str2", merge, data]  # noqa
 
     def test_atom_generation(self):
-        node = ArrayMergeNode(["merged1", "merged2"])
+        node = ArrayMergeNode("merged1", "merged2")
         assert node.get_asp_atom().to_asp_atom() == "merge(mock1, M)"
 
     def test_statements(self):
-        merge = ArrayMergeNode(["merged1", "merged2"])
+        merge = ArrayMergeNode("merged1", "merged2")
         data = DataVarNode("var")
-        node = ArrayMergeNode(["str", 123, ["str2", merge], data, "str"])
+        node = ArrayMergeNode("str", 123, ["str2", merge], data, "str")
 
         # Based on generation order:
         #   mock1 should be initial node
@@ -65,14 +61,14 @@ class TestArrayMergeNode:
         ]
 
     def test_str(self):
-        node = ArrayMergeNode(["merged1", "merged2"])
+        node = ArrayMergeNode("merged1", "merged2")
         assert str(node) == "MERGE(mock1)"
 
     def test_hash(self):
         data = DataVarNode("var")
-        node = ArrayMergeNode(["merged1", data, "merged2"])
-        node2 = ArrayMergeNode(["merged1", "merged2", data])
-        node3 = ArrayMergeNode(["merged1", data, "merged3"])
+        node = ArrayMergeNode("merged1", data, "merged2")
+        node2 = ArrayMergeNode("merged1", "merged2", data)
+        node3 = ArrayMergeNode("merged1", data, "merged3")
 
         child_nodes = sorted([hash("merged1"), hash(data), hash("merged2")])
         assert hash(node) == hash(("merge", tuple(child_nodes))) == hash(node2) != hash(node3)
@@ -81,46 +77,42 @@ class TestArrayMergeNode:
 class TestArrayInNode:
     def test_invalid_values(self):
         with pytest.raises(ValueError) as exc1:
-            ArrayInNode("single_node")
-        assert exc1.match("ArrayInNode expects a list as child")
+            ArrayInNode()
+        assert exc1.match("ArrayInNode expects 2 children, received 0")
 
         with pytest.raises(ValueError) as exc2:
-            ArrayInNode([])
-        assert exc2.match("ArrayInNode expects 2 children, received 0")
+            ArrayInNode("a")
+        assert exc2.match("ArrayInNode expects 2 children, received 1")
 
         with pytest.raises(ValueError) as exc3:
-            ArrayInNode(["a"])
-        assert exc3.match("ArrayInNode expects 2 children, received 1")
+            ArrayInNode("a", "b", "c")
+        assert exc3.match("ArrayInNode expects 2 children, received 3")
 
         with pytest.raises(ValueError) as exc4:
-            ArrayInNode(["a", "b", "c"])
-        assert exc4.match("ArrayInNode expects 2 children, received 3")
+            merge = ArrayMergeNode("a", "b")
+            ArrayInNode(merge, ["c", "d"])
+        assert exc4.match("ArrayInNode expects at least 1 JsonLogicSingleDataNode")
 
         with pytest.raises(ValueError) as exc5:
-            merge = ArrayMergeNode(["a", "b"])
-            ArrayInNode([merge, ["c", "d"]])
-        assert exc5.match("ArrayInNode expects at least 1 JsonLogicSingleDataNode")
-
-        with pytest.raises(ValueError) as exc6:
             data_var1 = DataVarNode("a1")
             data_var2 = DataVarNode("a2")
-            ArrayInNode([data_var1, data_var2])
-        assert exc6.match("ArrayInNode expects at least 1 JsonLogicMultiDataNode or list")
+            ArrayInNode(data_var1, data_var2)
+        assert exc5.match("ArrayInNode expects at least 1 JsonLogicMultiDataNode or list")
 
-        with pytest.raises(ValueError) as exc7:
+        with pytest.raises(ValueError) as exc6:
             data_var = DataVarNode("a")
-            ArrayInNode([data_var, ["b", None, "c"]])
-        assert exc7.match("ArrayInNode expects at least 1 list primitive nodes")
+            ArrayInNode(data_var, ["b", None, "c"])
+        assert exc6.match("ArrayInNode expects at least 1 list primitive nodes")
 
     def test_valid_values(self):
         data_var = DataVarNode("a")
-        node = ArrayInNode([data_var, ["b", "c"]])
+        node = ArrayInNode(data_var, ["b", "c"])
         assert isinstance(node, ArrayInNode)
 
     def test_child_registration(self):
         data_var = DataVarNode("a")
-        node_left_list = ArrayInNode([["b", "c"], data_var])
-        node_right_list = ArrayInNode([data_var, ["b", "c"]])
+        node_left_list = ArrayInNode(["b", "c"], data_var)
+        node_right_list = ArrayInNode(data_var, ["b", "c"])
 
         assert node_left_list.list_node == ["b", "c"] == node_right_list.list_node
         assert node_left_list.data_node == data_var == node_right_list.data_node
@@ -129,8 +121,8 @@ class TestArrayInNode:
 
     def test_child_registration_inner(self):
         data_var = DataVarNode("a")
-        merge = ArrayMergeNode(["a", "b"])
-        node = ArrayInNode([merge, data_var])
+        merge = ArrayMergeNode("a", "b")
+        node = ArrayInNode(merge, data_var)
 
         assert node.list_node == merge
         assert node.data_node == data_var
@@ -139,7 +131,7 @@ class TestArrayInNode:
     def test_statements_list(self):
         data_var = DataVarNode("data_var")
         data_list = ["a", "b", 123, "c"]
-        node = ArrayInNode([data_list, data_var])
+        node = ArrayInNode(data_list, data_var)
 
         assert node.to_asp(with_comment=True) == [
             "% data_var IN (a, b, 123, c)",
@@ -148,9 +140,9 @@ class TestArrayInNode:
         ]
 
     def test_statements_node(self):
-        data_node = ArrayMergeNode(["a"])
+        data_node = ArrayMergeNode("a")
         data_var = DataVarNode("data_var")
-        node = ArrayInNode([data_node, data_var])
+        node = ArrayInNode(data_node, data_var)
 
         assert node.to_asp(with_comment=True) == [
             "% Merge (a)",
@@ -161,25 +153,25 @@ class TestArrayInNode:
 
     def test_str(self):
         data_var = DataVarNode("a")  # mock1
-        node = ArrayInNode([[], data_var])  # mock2
+        node = ArrayInNode([], data_var)  # mock2
         assert str(node) == "IN(mock2)"
 
     def test_hash_list(self):
         data_var = DataVarNode("var")
         data_list = ["a", "b", "c"]
-        node1 = ArrayInNode([data_list, data_var])
-        node2 = ArrayInNode([data_var, ["b", "a", "c"]])
-        node3 = ArrayInNode([["a", "b"], data_var])
+        node1 = ArrayInNode(data_list, data_var)
+        node2 = ArrayInNode(data_var, ["b", "a", "c"])
+        node3 = ArrayInNode(["a", "b"], data_var)
 
         assert hash(node1) == hash(("in", hash(data_var), hash(tuple(sorted(data_list))))) == hash(node2)
         assert node1 == node2 != node3
 
     def test_hash_node(self):
         data_var = DataVarNode("var")
-        data_node = ArrayMergeNode(["a", "b", "c"])
-        node1 = ArrayInNode([data_node, data_var])
-        node2 = ArrayInNode([data_var, data_node])
-        node3 = ArrayInNode([["a", "b", "c"], data_var])
+        data_node = ArrayMergeNode("a", "b", "c")
+        node1 = ArrayInNode(data_node, data_var)
+        node2 = ArrayInNode(data_var, data_node)
+        node3 = ArrayInNode(["a", "b", "c"], data_var)
 
         assert hash(node1) == hash(("in", hash(data_var), hash(data_node))) == hash(node2)
         assert node1 == node2 != node3

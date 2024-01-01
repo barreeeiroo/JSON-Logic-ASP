@@ -1,4 +1,4 @@
-from typing import Any, List, Union
+from typing import List, Union
 
 from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal
 from json_logic_asp.adapters.asp.asp_statements import RuleStatement
@@ -16,19 +16,16 @@ from json_logic_asp.utils.json_logic_helpers import value_encoder
 
 
 class ArrayMergeNode(JsonLogicMultiDataNode):
-    def __init__(self, node_value: Any):
+    def __init__(self, *children):
         super().__init__(
             accepted_child_node_types=(JsonLogicDataNode,),
             term_variable_name=VariableNames.MERGE,
             operation_name=PredicateNames.ARRAY_MERGE,
         )
 
-        if not isinstance(node_value, list):
-            raise ValueError(f"ArrayMergeNode requires list as value, received {type(node_value)}")
-
         self.__child_nodes: List[Union[JsonLogicDataNode, int, float, bool, str]] = []
 
-        for values in node_value:
+        for values in children:
             if not isinstance(values, list):
                 values = [values]
 
@@ -86,16 +83,13 @@ class ArrayMergeNode(JsonLogicMultiDataNode):
 
 
 class ArrayInNode(JsonLogicOperationNode):
-    def __init__(self, node_value: Any):
+    def __init__(self, *children):
         super().__init__(operation_name=PredicateNames.ARRAY_IN)
 
-        if not isinstance(node_value, list):
-            raise ValueError(f"ArrayInNode expects a list as child, received {type(node_value).__name__}")
+        if len(children) != 2:
+            raise ValueError(f"ArrayInNode expects 2 children, received {len(children)}")
 
-        if len(node_value) != 2:
-            raise ValueError(f"ArrayInNode expects 2 children, received {len(node_value)}")
-
-        left, right = node_value
+        left, right = children
 
         if not isinstance(left, JsonLogicSingleDataNode) and not isinstance(right, JsonLogicSingleDataNode):
             raise ValueError("ArrayInNode expects at least 1 JsonLogicSingleDataNode")
@@ -130,7 +124,7 @@ class ArrayInNode(JsonLogicOperationNode):
                     t = type(list_elem).__name__
                     raise ValueError(f"ArrayInNode expects at least 1 list primitive nodes, received {t}")
 
-        for node in node_value:
+        for node in children:
             if not isinstance(node, JsonLogicNode) or isinstance(node, DataVarNode):
                 continue
             self.register_child(node)
