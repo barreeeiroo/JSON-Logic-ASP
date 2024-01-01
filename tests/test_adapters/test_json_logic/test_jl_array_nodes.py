@@ -13,7 +13,7 @@ class TestArrayMergeNode:
         assert exc1.match("Found unexpected child_node type NoneType for ArrayMergeNode")
 
         with pytest.raises(ValueError) as exc2:
-            ArrayMergeNode(BooleanAndNode())
+            ArrayMergeNode(BooleanAndNode(True))
         assert exc2.match("Found unexpected child_node type BooleanAndNode for ArrayMergeNode")
 
         with pytest.raises(ValueError) as exc3:

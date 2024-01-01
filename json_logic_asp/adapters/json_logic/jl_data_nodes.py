@@ -48,7 +48,7 @@ class DataMissingNode(JsonLogicOperationNode):
         super().__init__(operation_name=PredicateNames.DATA_MISSING)
 
         if len(children) < 1:
-            raise ValueError(f"DataVarNode requires at least 1 child, received {len(children)}")
+            raise ValueError("DataVarNode requires at least 1 child")
 
         self.var_names: List[str] = []
         for var_name in children:
