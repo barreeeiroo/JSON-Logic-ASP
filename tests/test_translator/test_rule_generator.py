@@ -256,7 +256,9 @@ def test_generate_multiple_rule_asp_definition(
     ],
 )
 @patch("json_logic_asp.translator.rule_generator.generate_multiple_rule_asp_definition")
-def test_generate_single_rule_asp_definition(mock_generate_multiple_rule_asp_definition, with_comments, custom_nodes):
+def test_generate_single_rule_asp_definition_call(
+    mock_generate_multiple_rule_asp_definition, with_comments, custom_nodes
+):
     mock_generate_multiple_rule_asp_definition.return_value = ("stmt1\nstmt2", {"a": "b"})
 
     ri = RuleInput(
@@ -270,4 +272,22 @@ def test_generate_single_rule_asp_definition(mock_generate_multiple_rule_asp_def
         rule_inputs=[ri],
         with_comments=with_comments,
         custom_nodes=custom_nodes,
+    )
+
+
+def test_generate_single_rule_asp_definition_simple():
+    ri = RuleInput(
+        rule_id="test",
+        rule_tree={"and": {"==": [{"var": "a"}, "b"]}},
+    )
+
+    asp_definition = generate_single_rule_asp_definition(ri, with_comments=True)
+    assert asp_definition == "\n".join(
+        [
+            "% a EQ b",
+            "eq(mock2) :- var(s0cc175b9c0f1b6a831c399e269772661, V1), V1 == s92eb5ffee6ae2fec3ad71c777531578f.",
+            "and(mock3) :- eq(mock2).",
+            "% test",
+            "rule(s098f6bcd4621d373cade4e832627b4f6) :- and(mock3).",
+        ]
     )
