@@ -64,9 +64,9 @@ def test_is_valid_json_logic_node_custom_op():
 @pytest.mark.parametrize(
     "json_logic_dict, json_logic_obj",
     [
-        ({"var": "a"}, DataVarNode("a")),
+        ({"var": "abc"}, DataVarNode("abc")),
         ({"missing": "a"}, DataMissingNode("a")),
-        ({"==": [{"var": "a"}, "b"]}, LogicEqualNode(DataVarNode("a"), "b")),
+        ({"==": [{"var": "acd"}, "b"]}, LogicEqualNode(DataVarNode("acd"), "b")),
         (
             {
                 "and": [
@@ -207,7 +207,7 @@ def test_parse_json_logic_node_custom_op():
             [
                 RuleInput(
                     rule_id="test",
-                    rule_tree={"op": {"dummy"}},
+                    rule_tree={"op": "dummy"},
                 ),
             ],
             True,

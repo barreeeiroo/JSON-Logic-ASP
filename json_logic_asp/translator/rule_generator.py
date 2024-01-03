@@ -97,7 +97,11 @@ def __parse_json_logic_node(
             for node in node_value
         ]
 
-    jl_node = supported_nodes[node_key](*node_value)
+    node_generator = supported_nodes[node_key]
+    if isinstance(node_value, list):
+        jl_node = node_generator(*node_value)
+    else:
+        jl_node = node_generator(node_value)
 
     return __get_or_update_cache(jl_node, rule_node_cache)
 
