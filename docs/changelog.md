@@ -2,6 +2,10 @@
 
 ## v0.X
 
+### v0.3.1
+
+- Fixed node generation on non-list children
+
 ### v0.3.0
 
 - Added 100% unit test coverage
