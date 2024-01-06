@@ -45,6 +45,11 @@ class TestLogicIfNode:
 
         assert node.child_nodes == [eq, gt]
 
+    def test_child_registration_multiple_bool(self):
+        node = LogicIfNode(True, True)
+
+        assert node.child_nodes == [True, True]
+
     def test_statements_if(self):
         eq = LogicEqualNode("a", "b")
         node = LogicIfNode(eq)
@@ -52,7 +57,24 @@ class TestLogicIfNode:
         assert node.to_asp(with_comment=True) == [
             "% a EQ b",
             "eq(mock1) :- s0cc175b9c0f1b6a831c399e269772661 == s92eb5ffee6ae2fec3ad71c777531578f.",
+            "bool(true).",
             "if(mock2) :- eq(mock1).",
+        ]
+
+    def test_statements_if_true(self):
+        node = LogicIfNode(True)
+
+        assert node.to_asp(with_comment=True) == [
+            "bool(true).",
+            "if(mock1) :- bool(true).",
+        ]
+
+    def test_statements_if_false(self):
+        node = LogicIfNode(False)
+
+        assert node.to_asp(with_comment=True) == [
+            "bool(true).",
+            "if(mock1) :- bool(false).",
         ]
 
     def test_statements_if_cond(self):
@@ -65,7 +87,52 @@ class TestLogicIfNode:
             "eq(mock1) :- s0cc175b9c0f1b6a831c399e269772661 == s92eb5ffee6ae2fec3ad71c777531578f.",
             "% 3 GT 1",
             "gt(mock2) :- 3 > 1.",
+            "bool(true).",
             "if(mock3) :- eq(mock1), gt(mock2).",
+        ]
+
+    def test_statements_if_cond_true_var(self):
+        gt = LogicGreaterThanNode(3, 1)
+        node = LogicIfNode(True, gt)
+
+        assert node.to_asp(with_comment=True) == [
+            "% 3 GT 1",
+            "gt(mock1) :- 3 > 1.",
+            "bool(true).",
+            "if(mock2) :- bool(true), gt(mock1).",
+        ]
+
+    def test_statements_if_cond_false_var(self):
+        gt = LogicGreaterThanNode(3, 1)
+        node = LogicIfNode(False, gt)
+
+        assert node.to_asp(with_comment=True) == [
+            "% 3 GT 1",
+            "gt(mock1) :- 3 > 1.",
+            "bool(true).",
+            "if(mock2) :- bool(false), gt(mock1).",
+        ]
+
+    def test_statements_if_cond_var_true(self):
+        gt = LogicGreaterThanNode(3, 1)
+        node = LogicIfNode(gt, True)
+
+        assert node.to_asp(with_comment=True) == [
+            "% 3 GT 1",
+            "gt(mock1) :- 3 > 1.",
+            "bool(true).",
+            "if(mock2) :- gt(mock1), bool(true).",
+        ]
+
+    def test_statements_if_cond_var_false(self):
+        gt = LogicGreaterThanNode(3, 1)
+        node = LogicIfNode(gt, False)
+
+        assert node.to_asp(with_comment=True) == [
+            "% 3 GT 1",
+            "gt(mock1) :- 3 > 1.",
+            "bool(true).",
+            "if(mock2) :- gt(mock1), bool(false).",
         ]
 
     def test_statements_if_cond_else(self):
@@ -81,9 +148,58 @@ class TestLogicIfNode:
             "gt(mock2) :- 3 > 1.",
             "% 4 LT 3",
             "lt(mock3) :- 4 < 3.",
+            "bool(true).",
             "else(mock5) :- not eq(mock1), lt(mock3).",
             "if(mock4) :- else(mock5).",
             "if(mock4) :- eq(mock1), gt(mock2).",
+        ]
+
+    def test_statements_if_true_cond_else(self):
+        gt = LogicGreaterThanNode(3, 1)
+        lt = LogicLowerThanNode(4, 3)
+        node = LogicIfNode(True, gt, lt)
+
+        assert node.to_asp(with_comment=True) == [
+            "% 3 GT 1",
+            "gt(mock1) :- 3 > 1.",
+            "% 4 LT 3",
+            "lt(mock2) :- 4 < 3.",
+            "bool(true).",
+            "else(mock5) :- not bool(true), lt(mock2).",
+            "if(mock3) :- else(mock5).",
+            "if(mock3) :- bool(true), gt(mock1).",
+        ]
+
+    def test_statements_if_false_cond_else(self):
+        gt = LogicGreaterThanNode(3, 1)
+        lt = LogicLowerThanNode(4, 3)
+        node = LogicIfNode(False, gt, lt)
+
+        assert node.to_asp(with_comment=True) == [
+            "% 3 GT 1",
+            "gt(mock1) :- 3 > 1.",
+            "% 4 LT 3",
+            "lt(mock2) :- 4 < 3.",
+            "bool(true).",
+            "else(mock5) :- not bool(false), lt(mock2).",
+            "if(mock3) :- else(mock5).",
+            "if(mock3) :- bool(false), gt(mock1).",
+        ]
+
+    def test_statements_if_cond_else_true(self):
+        eq = LogicEqualNode("a", "b")
+        gt = LogicGreaterThanNode(3, 1)
+        node = LogicIfNode(eq, gt, True)
+
+        assert node.to_asp(with_comment=True) == [
+            "% a EQ b",
+            "eq(mock1) :- s0cc175b9c0f1b6a831c399e269772661 == s92eb5ffee6ae2fec3ad71c777531578f.",
+            "% 3 GT 1",
+            "gt(mock2) :- 3 > 1.",
+            "bool(true).",
+            "else(mock5) :- not eq(mock1), bool(true).",
+            "if(mock3) :- else(mock5).",
+            "if(mock3) :- eq(mock1), gt(mock2).",
         ]
 
     def test_statements_if_cond_elif_cond(self):
@@ -102,6 +218,7 @@ class TestLogicIfNode:
             "eq(mock3) :- s693a9fdd4c2fd0700968fba0d07ff3c0 == sfbfba2e45c2045dc5cab22a5afe83d9d.",
             "% 30 GT 10",
             "gt(mock4) :- 30 > 10.",
+            "bool(true).",
             "elif(mock6) :- not eq(mock1), eq(mock3), gt(mock4).",
             "if(mock5) :- elif(mock6).",
             "if(mock5) :- eq(mock1), gt(mock2).",
@@ -126,6 +243,7 @@ class TestLogicIfNode:
             "gt(mock4) :- 30 > 10.",
             "% 4 LT 3",
             "lt(mock5) :- 4 < 3.",
+            "bool(true).",
             "else(mock8) :- not eq(mock1), not eq(mock3), lt(mock5).",
             "elif(mock7) :- else(mock8).",
             "elif(mock7) :- not eq(mock1), eq(mock3), gt(mock4).",
@@ -155,6 +273,7 @@ class TestLogicIfNode:
             "eq(mock5) :- s9d607a663f3e9b0a90c3c8d4426640dc == s7a6f150b83091ce20c89368641f9a137.",
             "% 300 GT 100",
             "gt(mock6) :- 300 > 100.",
+            "bool(true).",
             "elif(mock9) :- not eq(mock1), not eq(mock3), eq(mock5), gt(mock6).",
             "elif(mock8) :- elif(mock9).",
             "elif(mock8) :- not eq(mock1), eq(mock3), gt(mock4).",
@@ -187,6 +306,7 @@ class TestLogicIfNode:
             "gt(mock6) :- 300 > 100.",
             "% 4 LT 3",
             "lt(mock7) :- 4 < 3.",
+            "bool(true).",
             "else(mock11) :- not eq(mock1), not eq(mock3), not eq(mock5), lt(mock7).",
             "elif(mock10) :- else(mock11).",
             "elif(mock10) :- not eq(mock1), not eq(mock3), eq(mock5), gt(mock6).",

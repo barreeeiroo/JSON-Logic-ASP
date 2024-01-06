@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Sequence, Union
 
 from json_logic_asp.adapters.asp.asp_literals import Literal, PredicateAtom
 from json_logic_asp.constants.asp_naming import PredicateNames
@@ -15,7 +15,7 @@ class FactStatement(Statement):
 
 
 class RuleStatement(Statement):
-    def __init__(self, atom: PredicateAtom, literals: List[Literal], *args, **kwargs):
+    def __init__(self, atom: PredicateAtom, literals: Sequence[Literal], *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.atom = atom
         self.literals = literals

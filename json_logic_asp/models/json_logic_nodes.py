@@ -9,16 +9,19 @@ from json_logic_asp.utils.id_management import generate_unique_id
 
 
 class JsonLogicNode(ABC):
-    def __init__(self, operation_name: str, accepted_child_node_types: Tuple[Type, ...]):
+    def __init__(
+        self, operation_name: str, accepted_child_node_types: Tuple[Type, ...], allow_duplicated_children: bool = False
+    ):
         self.operation_name: str = operation_name
         self.__accepted_child_node_types = accepted_child_node_types
+        self.__allow_duplicated_children = allow_duplicated_children
 
         self.node_id: str = generate_unique_id()
         self.child_nodes: List[Any] = []
 
     @final
     def register_child(self, child_node: Any):
-        if child_node in self.child_nodes:
+        if child_node in self.child_nodes and not self.__allow_duplicated_children:
             return
 
         if not isinstance(child_node, self.__accepted_child_node_types):
@@ -82,13 +85,22 @@ class JsonLogicNode(ABC):
 
 
 class JsonLogicTreeNode(JsonLogicNode, ABC):
-    def __init__(self, operation_name: str, accepted_child_node_types: Optional[Tuple[Type, ...]] = None):
+    def __init__(
+        self,
+        operation_name: str,
+        accepted_child_node_types: Optional[Tuple[Type, ...]] = None,
+        allow_duplicated_children: bool = False,
+    ):
         if accepted_child_node_types is None:
             accepted_child_node_types = (
                 JsonLogicTreeNode,
                 JsonLogicOperationNode,
             )
-        super().__init__(operation_name=operation_name, accepted_child_node_types=accepted_child_node_types)
+        super().__init__(
+            operation_name=operation_name,
+            accepted_child_node_types=accepted_child_node_types,
+            allow_duplicated_children=allow_duplicated_children,
+        )
 
     @final
     def get_asp_atom(self) -> PredicateAtom:
