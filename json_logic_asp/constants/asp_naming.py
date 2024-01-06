@@ -23,6 +23,8 @@ class PredicateNames(str, Enum):
 
     RULE = "rule"
 
+    BOOL = "bool"
+
 
 class VariableNames(str, Enum):
     ANY = "_"

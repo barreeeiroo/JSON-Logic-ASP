@@ -2,21 +2,64 @@ from abc import ABC
 from typing import Dict, List
 
 from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal, PredicateAtom
-from json_logic_asp.adapters.asp.asp_statements import RuleStatement
+from json_logic_asp.adapters.asp.asp_statements import FactStatement, RuleStatement
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
 from json_logic_asp.constants.asp_naming import PredicateNames, VariableNames
 from json_logic_asp.models.asp_base import Statement
-from json_logic_asp.models.json_logic_nodes import JsonLogicOperationNode, JsonLogicSingleDataNode, JsonLogicTreeNode
+from json_logic_asp.models.json_logic_nodes import (
+    JsonLogicNode,
+    JsonLogicOperationNode,
+    JsonLogicSingleDataNode,
+    JsonLogicTreeNode,
+)
 from json_logic_asp.utils.id_management import generate_unique_id
 from json_logic_asp.utils.json_logic_helpers import value_encoder
+
+
+class JsonLogicHelperBoolNode(JsonLogicNode):
+    def __init__(self, *children):
+        super().__init__(accepted_child_node_types=(bool,), operation_name=PredicateNames.BOOL)
+
+        if len(children) != 1:
+            raise ValueError(f"JsonLogicHelperBoolNode accepts only 1 child, received {len(children)}")
+
+        child = children[0]
+        if not isinstance(child, bool):
+            raise ValueError(f"JsonLogicHelperBoolNode accepts only bool child, received {child.__class__.__name__}")
+
+        self.bool = child
+
+    @property
+    def encoded_bool(self):
+        return str(self.bool).lower()
+
+    def get_asp_atom(self) -> PredicateAtom:
+        return PredicateAtom(
+            predicate_name=self.operation_name,
+            terms=[self.encoded_bool],
+        )
+
+    def get_asp_statements(self) -> List[Statement]:
+        return []
+
+    def __str__(self):
+        return f"BOOL({self.encoded_bool})"
+
+    def __hash__(self):
+        return hash(
+            (
+                "bool",
+                self.node_id,
+            )
+        )
 
 
 class LogicIfNode(JsonLogicTreeNode):
     def __init__(self, *children):
         super().__init__(
             operation_name=PredicateNames.LOGIC_IF,
-            # TODO: Add support for booleans
-            accepted_child_node_types=(JsonLogicTreeNode, JsonLogicOperationNode),
+            accepted_child_node_types=(JsonLogicTreeNode, JsonLogicOperationNode, bool),
+            allow_duplicated_children=True,
         )
 
         if len(children) < 1:
@@ -24,6 +67,12 @@ class LogicIfNode(JsonLogicTreeNode):
 
         for child_node in children:
             self.register_child(child_node)
+
+    def get_encoded_child_nodes(self) -> List[JsonLogicNode]:
+        return [
+            JsonLogicHelperBoolNode(child_node) if isinstance(child_node, bool) else child_node
+            for child_node in self.child_nodes
+        ]
 
     def get_asp_statements(self) -> List[Statement]:
         # Evaluation happens in pairs: if(A, B, C, D, E, F, Z) gets translated to
@@ -41,8 +90,9 @@ class LogicIfNode(JsonLogicTreeNode):
         # Only generate else when there are more than 1 node
         has_else = total_nodes > 1 and total_nodes % 2 == 1
 
-        stmts: List[Statement] = []
+        encoded_child_atoms = self.get_encoded_child_nodes()
 
+        stmts: List[Statement] = []
         negated_atoms: List[PredicateAtom] = []
 
         begin_i, end_i = 0, min(total_nodes, 2)
@@ -50,10 +100,10 @@ class LogicIfNode(JsonLogicTreeNode):
         stmts.append(
             RuleStatement(
                 atom=self.get_asp_atom(),
-                literals=[child.get_asp_atom() for child in self.child_nodes[begin_i:end_i]],
+                literals=[child.get_asp_atom() for child in encoded_child_atoms[begin_i:end_i]],
             )
         )
-        negated_atoms.append(self.child_nodes[begin_i].get_negated_asp_atom())
+        negated_atoms.append(encoded_child_atoms[begin_i].get_negated_asp_atom())
         prev_atom = self.get_asp_atom()
 
         for _ in range(total_elifs):
@@ -71,10 +121,10 @@ class LogicIfNode(JsonLogicTreeNode):
             stmts.append(
                 RuleStatement(
                     atom=new_atom,
-                    literals=negated_atoms + [child.get_asp_atom() for child in self.child_nodes[begin_i:end_i]],
+                    literals=negated_atoms + [child.get_asp_atom() for child in encoded_child_atoms[begin_i:end_i]],
                 )
             )
-            negated_atoms.append(self.child_nodes[begin_i].get_negated_asp_atom())
+            negated_atoms.append(encoded_child_atoms[begin_i].get_negated_asp_atom())
             prev_atom = new_atom
 
         if has_else:
@@ -91,9 +141,18 @@ class LogicIfNode(JsonLogicTreeNode):
             stmts.append(
                 RuleStatement(
                     atom=new_atom,
-                    literals=negated_atoms + [child.get_asp_atom() for child in self.child_nodes[begin_i:end_i]],
+                    literals=negated_atoms + [child.get_asp_atom() for child in encoded_child_atoms[begin_i:end_i]],
                 )
             )
+
+        stmts.append(
+            FactStatement(
+                atom=PredicateAtom(
+                    predicate_name=PredicateNames.BOOL,
+                    terms=["true"],
+                )
+            )
+        )
 
         return list(reversed(stmts))
 
