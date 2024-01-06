@@ -4,6 +4,7 @@ from typing import Dict, List
 from json_logic_asp.adapters.asp.asp_literals import ComparatorAtom, Literal, PredicateAtom
 from json_logic_asp.adapters.asp.asp_statements import FactStatement, RuleStatement
 from json_logic_asp.adapters.json_logic.jl_data_nodes import DataVarNode
+from json_logic_asp.adapters.json_logic.jl_helper_nodes import JsonLogicHelperBoolNode
 from json_logic_asp.constants.asp_naming import PredicateNames, VariableNames
 from json_logic_asp.models.asp_base import Statement
 from json_logic_asp.models.json_logic_nodes import (
@@ -14,44 +15,6 @@ from json_logic_asp.models.json_logic_nodes import (
 )
 from json_logic_asp.utils.id_management import generate_unique_id
 from json_logic_asp.utils.json_logic_helpers import value_encoder
-
-
-class JsonLogicHelperBoolNode(JsonLogicNode):
-    def __init__(self, *children):
-        super().__init__(accepted_child_node_types=(bool,), operation_name=PredicateNames.BOOL)
-
-        if len(children) != 1:
-            raise ValueError(f"JsonLogicHelperBoolNode accepts only 1 child, received {len(children)}")
-
-        child = children[0]
-        if not isinstance(child, bool):
-            raise ValueError(f"JsonLogicHelperBoolNode accepts only bool child, received {child.__class__.__name__}")
-
-        self.bool = child
-
-    @property
-    def encoded_bool(self):
-        return str(self.bool).lower()
-
-    def get_asp_atom(self) -> PredicateAtom:
-        return PredicateAtom(
-            predicate_name=self.operation_name,
-            terms=[self.encoded_bool],
-        )
-
-    def get_asp_statements(self) -> List[Statement]:
-        return []
-
-    def __str__(self):
-        return f"BOOL({self.encoded_bool})"
-
-    def __hash__(self):
-        return hash(
-            (
-                "bool",
-                self.node_id,
-            )
-        )
 
 
 class LogicIfNode(JsonLogicTreeNode):
