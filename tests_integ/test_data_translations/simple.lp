@@ -1,0 +1,6 @@
+% a : b
+var(s0cc175b9c0f1b6a831c399e269772661, s92eb5ffee6ae2fec3ad71c777531578f).
+% c : 3
+var(s4a8a08f09d37b73795649038408b5f33, 3).
+% d.e : 48
+var(s405f7563a1a79cad802baab832d146dd, 48).
